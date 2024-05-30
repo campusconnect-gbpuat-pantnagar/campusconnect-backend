@@ -12,22 +12,22 @@ const JobSchema = new mongoose.Schema(
 
     company: {
       type: String,
-      required: true
+      required: true,
     },
 
     batchYear: {
-      type: String,
-      required: true
+      type: Number,
+      required: true,
     },
 
-    college: {
+    collegeId: {
       type: String,
-      required: true
+      required: true,
     },
 
     eligibility: {
       type: String,
-      required: true
+      required: true,
     },
 
     skillsReq: [
@@ -57,6 +57,6 @@ const JobSchema = new mongoose.Schema(
     },
   },
   { timestamps: true }
-)
+);
 
-module.exports = mongoose.model("Job", JobSchema)
+module.exports = mongoose.model("Job", JobSchema);

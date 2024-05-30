@@ -1,8 +1,5 @@
 const express = require("express");
-const {
-  isSignedIn,
-  isAuthenticated,
-} = require("../controllers/auth.controller");
+
 const {
   getJobById,
   createJob,
@@ -11,35 +8,21 @@ const {
   updateJob,
   deleteJob,
 } = require("../controllers/jobs.controller");
-const { getUserById } = require("../controllers/user.controller");
+const { AuthMiddleware } = require("../middlewares/auth.middleware");
 const router = express.Router();
 
-// param
-router.param("userId", getUserById);
-router.param("jobId", getJobById);
-
 // create job
-router.post("/create/job", isSignedIn, isAuthenticated, createJob);
+router.post("/jobs", AuthMiddleware, createJob);
 
 // read all jobs
-router.get("/jobs", isSignedIn, allJobs);
+router.get("/jobs", AuthMiddleware, allJobs);
 
 //read a particular job
-router.get("/jobs/:jobId", isSignedIn, getJob);
+router.get("/jobs/:jobId", AuthMiddleware, getJob);
 
 // update job
-router.put(
-  "/update/job/:userId/:jobId",
-  isSignedIn,
-  isAuthenticated,
-  updateJob
-);
+router.put("/jobs/:jobId", AuthMiddleware, updateJob);
 
 // delete job
-router.delete(
-  "/delete/job/:userId/:jobId",
-  isSignedIn,
-  isAuthenticated,
-  deleteJob
-);
+router.delete("/jobs/:jobId", AuthMiddleware, deleteJob);
 module.exports = router;

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const adsSchema = new mongoose.Schema(
   {
@@ -9,7 +9,7 @@ const adsSchema = new mongoose.Schema(
 
     userId: {
       type: mongoose.Schema.ObjectId,
-      ref: "User",  // this need to be deleted if it creates a problem
+      ref: "User", // this need to be deleted if it creates a problem
       required: true,
     },
     title: {
@@ -23,9 +23,9 @@ const adsSchema = new mongoose.Schema(
       max: 3000,
     },
     is_safe: {
-			type: Boolean,
-			default: false
-		},
+      type: Boolean,
+      default: false,
+    },
     contact: {
       type: String,
       required: true,
@@ -35,33 +35,33 @@ const adsSchema = new mongoose.Schema(
       min: 0,
     },
     media: [
-			{
-				url: {
-					type: String,
-					default: null
-				},
-				format: {
-					type: String,
-					default: null
-				},
-				publicId: {
-					type: String,
-					default: null
-				},
-				resource_type: {
-					type: String,
-					default: null
-				},
-				thumbnail_url: {
-					type: String,
-					default: null
-				},
-				asset_id: {
-					type: String,
-					default: null
-				},
-			}
-		],
+      {
+        url: {
+          type: String,
+          default: null,
+        },
+        format: {
+          type: String,
+          default: null,
+        },
+        publicId: {
+          type: String,
+          default: null,
+        },
+        resource_type: {
+          type: String,
+          default: null,
+        },
+        thumbnail_url: {
+          type: String,
+          default: null,
+        },
+        asset_id: {
+          type: String,
+          default: null,
+        },
+      },
+    ],
     likes: [
       {
         type: mongoose.Schema.ObjectId,
@@ -82,6 +82,6 @@ const adsSchema = new mongoose.Schema(
     ],
   },
   { timestamps: true }
-)
+);
 
-module.exports = mongoose.model("Ads", adsSchema)
+module.exports = mongoose.model("Ads", adsSchema);
