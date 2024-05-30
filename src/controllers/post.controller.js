@@ -120,7 +120,6 @@ exports.updatePost = async (req, res) => {
   }
 };
 
-
 // delete post
 exports.deletePost = async (req, res) => {
   try {
@@ -159,7 +158,6 @@ exports.deletePost = async (req, res) => {
     });
   }
 };
-
 
 // Like post
 exports.likePost = async (req, res) => {
@@ -200,27 +198,6 @@ exports.likePost = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Unlike post
 exports.unlikePost = async (req, res) => {
   try {
@@ -247,6 +224,28 @@ exports.unlikePost = async (req, res) => {
       status: globalConstants.status.success,
       message: `${userId} unliked the post!!`,
       data: result,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
+
+exports.getAllPostByUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const posts = await Post.find({ userId }).sort({ createdAt: -1 }).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All posts",
+      data: posts,
       statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
     });
   } catch (err) {
