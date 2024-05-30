@@ -5,6 +5,10 @@ const mongoose = require("mongoose");
 const morgan = require("morgan");
 const cookieparser = require("cookie-parser");
 const cors = require("cors");
+const {
+  AuthMiddleware,
+  isAdmin,
+} = require("./src/middlewares/auth.middleware");
 
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT || 5000;
@@ -16,18 +20,24 @@ app.use(cors());
 app.use(cookieparser());
 app.use(express.json());
 // routes
-app.use("/api/v1", require("./routes/post.route"));
-app.use("/api/v1", require("./routes/blog.route"));
-app.use("/api/v1", require("./routes/jobs.route"));
-app.use("/api/v1", require("./routes/ad.route"));
-app.use("/api/v1", require("./routes/notice.route"));
-app.use("/api/v1", require("./routes/poll.route"));
-app.use("/api/v1", require("./routes/event.route"));
-app.use("/api/v1", require("./routes/update.route"));
-app.use("/api/v1", require("./routes/feedback.route"));
-app.use("/api/v1", require("./routes/notification.route"));
-app.get("/", (req, res) => {
-  res.send("Service is healthy ✅");
+
+// app.get("/api/v1/test", AuthMiddleware, isAdmin, (req, res, next) => {
+//   console.log(req.user.id);
+//   res.send("this is a test route");
+// });
+
+app.use("/api/v1", require("./src/routes/post.route"));
+// app.use("/api/v1", require("./src/routes/blog.route"));
+// app.use("/api/v1", require("./src/routes/jobs.route"));
+// app.use("/api/v1", require("./src/routes/ad.route"));
+// app.use("/api/v1", require("./routes/notice.route"));
+// app.use("/api/v1", require("./routes/poll.route"));
+// app.use("/api/v1", require("./routes/event.route"));
+// app.use("/api/v1", require("./routes/update.route"));
+// app.use("/api/v1", require("./routes/feedback.route"));
+// app.use("/api/v1", require("./routes/notification.route"));
+app.get("/api/v1/healthcheck", (req, res) => {
+  res.send("CAMPUSCONNECT BACKEND SERVICE  IS HEALTHY ✅ 🚀.");
 });
 
 // database connectivity

@@ -1,8 +1,5 @@
-const express = require("express")
-const {
-  isSignedIn,
-  isAuthenticated,
-} = require("../controllers/auth.controller");
+const express = require("express");
+const { isSignedIn, isAuthenticated } = require("");
 const {
   createPost,
   allposts,
@@ -19,22 +16,17 @@ const { getUserById } = require("../controllers/user.controller");
 const router = express.Router();
 
 //param
-router.param("userId", getUserById)
-router.param("postId", getPostById)
+router.param("userId", getUserById);
+router.param("postId", getPostById);
 
 // post route - create
-router.post(
-  "/create/post/:userId",
-  isSignedIn,
-  isAuthenticated,
-  createPost
-)
+router.post("/create/post/:userId", isSignedIn, isAuthenticated, createPost);
 
 // get all posts - read all
-router.get("/posts", isSignedIn, allposts)
+router.get("/posts", isSignedIn, allposts);
 
 //get a particular post
-router.get("/post/:postId", isSignedIn, getPost)
+router.get("/post/:postId", isSignedIn, getPost);
 
 // update post
 router.put(
@@ -42,7 +34,7 @@ router.put(
   isSignedIn,
   isAuthenticated,
   updatePost
-)
+);
 
 // delete post
 router.delete(
@@ -50,10 +42,10 @@ router.delete(
   isSignedIn,
   isAuthenticated,
   deletePost
-)
+);
 
 // Like a post
-router.put("/post/like/:userId/:postId", isSignedIn, isAuthenticated, likePost)
+router.put("/post/like/:userId/:postId", isSignedIn, isAuthenticated, likePost);
 
 // Unlike a post
 router.put(
@@ -61,7 +53,7 @@ router.put(
   isSignedIn,
   isAuthenticated,
   unlikePost
-)
+);
 
 // comment a post
 router.put(
@@ -69,9 +61,9 @@ router.put(
   isSignedIn,
   isAuthenticated,
   commentPost
-)
+);
 
 // get all post by user
-router.get("/:userId/posts", isSignedIn, getAllPostByUser)
+router.get("/:userId/posts", isSignedIn, getAllPostByUser);
 
-module.exports = router
+module.exports = router;
