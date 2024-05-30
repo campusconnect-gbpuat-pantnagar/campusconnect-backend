@@ -59,3 +59,25 @@ exports.createPost = async (req, res) => {
     });
   }
 };
+
+
+exports.allposts = async (req, res) => {
+  try {
+    const posts = await Post.find({}).sort({ createdAt: -1 }).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All posts retrieved successfully",
+      data: posts,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to retrieve posts",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
