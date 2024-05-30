@@ -32,3 +32,30 @@ exports.getPostById = async (req, res) => {
     });
   }
 };
+
+
+exports.createPost = async (req, res) => {
+  try {
+    const { content, media } = req.body;
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    const newPost = new Post({ userId, content, media });
+    const post = await newPost.save();
+
+    return res.status(HttpStatusCode.CREATED).json({
+      status: globalConstants.status.success,
+      message: "Post created successfully",
+      data: post,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeCreated.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to create post",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
