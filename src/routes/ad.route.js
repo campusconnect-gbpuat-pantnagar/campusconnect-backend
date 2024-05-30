@@ -1,66 +1,43 @@
 const express = require("express");
 const {
-	getAdById,
-	createAds,
-	allAds,
-	updateAd,
-	deleteAd,
-	getAd,
-	commentAd,
-	likeAd,
-	unlikeAd,
-	getAllAdsByUser,
+  getAdById,
+  createAds,
+  allAds,
+  updateAd,
+  deleteAd,
+  getAd,
+  commentAd,
+  likeAd,
+  unlikeAd,
+  getAllAdsByUser,
 } = require("../controllers/ad.controller");
-const {
-	isSignedIn,
-	isAuthenticated,
-} = require("../controllers/auth.controller");
-const { getUserById } = require("../controllers/user.controller");
+const { AuthMiddleware, isAdmin } = require("../middlewares/auth.middleware");
 const router = express.Router();
 
-//param
-router.param("userId", getUserById);
-router.param("adId", getAdById);
-
 // create ads
-router.post(
-	"/create/ad/:userId",
-	isSignedIn,
-	isAuthenticated,
-	createAds
-);
+router.post("/ads/", AuthMiddleware, createAds);
 
 // get all ads - read all
-router.get("/ads", isSignedIn, allAds);
+router.get("/ads", AuthMiddleware, allAds);
 
 //get a particular ad
-router.get("/ads/:adId", isSignedIn, getAd);
+router.get("/ads/:adId", AuthMiddleware, getAd);
 
 // update ad
-router.put(
-	"/update/ad/:userId/:adId",
-	isSignedIn,
-	isAuthenticated,
-	updateAd
-);
+router.put("/ads/:adId", AuthMiddleware, updateAd);
 
 // delete ad
-router.delete(
-	"/delete/ad/:userId/:adId",
-	isSignedIn,
-	isAuthenticated,
-	deleteAd
-);
+router.delete("/ads/:adId", AuthMiddleware, deleteAd);
 
 // Like an ad
-router.put("/ad/like/:userId/:adId", isSignedIn, isAuthenticated, likeAd);
+router.put("/ads/:adId/like", AuthMiddleware, likeAd);
 
 // Unlike an ad
-router.put("/ad/unlike/:userId/:adId", isSignedIn, isAuthenticated, unlikeAd);
+router.put("/ads/:adId/unlike", AuthMiddleware, unlikeAd);
 
 // comment on an ad
-router.put("/ad/comment/:userId/:adId", isSignedIn, isAuthenticated, commentAd);
+router.put("/ads/:adId/comments", AuthMiddleware, commentAd);
 
-router.get("/:userId/ads", isSignedIn, getAllAdsByUser)
+router.get("/ads", AuthMiddleware, getAllAdsByUser);
 
 module.exports = router;

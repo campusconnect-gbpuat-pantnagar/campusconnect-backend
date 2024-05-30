@@ -1,9 +1,5 @@
 const express = require("express");
-const {
-  isSignedIn,
-  isAuthenticated,
-  isAdmin,
-} = require("../controllers/auth.controller");
+
 const {
   getUpdateById,
   createUpdate,
@@ -11,29 +7,23 @@ const {
   getUpdate,
   deleteUpdate,
 } = require("../controllers/site-update.controller");
-const { getUserById } = require("../controllers/user.controller");
+const { isAdmin, AuthMiddleware } = require("../middlewares/auth.middleware");
+
 const router = express.Router();
 
 // create update
-router.post(
-  "/create/update",
-  isSignedIn,
-  isAuthenticated,
-  isAdmin,
-  createUpdate
-);
+router.post("/site-updates", AuthMiddleware, isAdmin, createUpdate);
 
 // all updates
-router.get("/updates", isSignedIn, getUpdates);
+router.get("/site-updates", AuthMiddleware, getUpdates);
 
 //get a particular update
-router.get("/updates/:updateId", isSignedIn, getUpdate);
+router.get("/site-updates/:siteUpdateId", AuthMiddleware, getUpdate);
 
 // delete update
 router.delete(
-  "/delete/update/:userId/:updateId",
-  isSignedIn,
-  isAuthenticated,
+  "/site-updates/:siteUpdateId",
+  AuthMiddleware,
   isAdmin,
   deleteUpdate
 );

@@ -9,10 +9,10 @@ const {
 const { AuthMiddleware, isAdmin } = require("../middlewares/auth.middleware");
 const router = express.Router();
 
-// Admin routes
 //create feedback
 router.post("/feedbacks", AuthMiddleware, createFeedback);
 
+// Admin routes
 // get all feedbacks
 router.get("/feedbacks", AuthMiddleware, isAdmin, allFeedbacks);
 

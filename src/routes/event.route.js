@@ -11,15 +11,16 @@ const {
 const { AuthMiddleware, isAdmin } = require("../middlewares/auth.middleware");
 const router = express.Router();
 
-// create event
-router.post("/events", AuthMiddleware, isAdmin, createEvent);
-
 // all events
 router.get("/events", AuthMiddleware, allEvents);
 
 //get a particular event
 router.get("/events/:eventId", AuthMiddleware, getEvent);
 
+// admin routes
+
+// create event
+router.post("/events", AuthMiddleware, isAdmin, createEvent);
 // update event
 router.put("/events/:eventId", AuthMiddleware, isAdmin, updateEvent);
 
