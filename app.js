@@ -21,10 +21,9 @@ app.use(cookieparser());
 app.use(express.json());
 // routes
 
-// app.get("/api/v1/test", AuthMiddleware, isAdmin, (req, res, next) => {
-//   console.log(req.user.id);
-//   res.send("this is a test route");
-// });
+app.get("/api/v1/healthcheck", (req, res) => {
+  res.send("CAMPUSCONNECT BACKEND SERVICE  IS HEALTHY ✅ 🚀.");
+});
 
 app.use("/api/v1", require("./src/routes/post.route"));
 // app.use("/api/v1", require("./src/routes/blog.route"));
@@ -36,9 +35,6 @@ app.use("/api/v1", require("./src/routes/post.route"));
 // app.use("/api/v1", require("./routes/update.route"));
 // app.use("/api/v1", require("./routes/feedback.route"));
 // app.use("/api/v1", require("./routes/notification.route"));
-app.get("/api/v1/healthcheck", (req, res) => {
-  res.send("CAMPUSCONNECT BACKEND SERVICE  IS HEALTHY ✅ 🚀.");
-});
 
 // database connectivity
 mongoose.connect(
