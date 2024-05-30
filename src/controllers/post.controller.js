@@ -159,3 +159,44 @@ exports.deletePost = async (req, res) => {
     });
   }
 };
+
+
+// Like post
+exports.likePost = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { postId } = req.params;
+
+    let post = await Post.findOne({ _id: postId }).exec();
+    if (!post) {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        status: globalConstants.status.failed,
+        message: `Post not found `,
+        error: globalConstants.statusCode.BadRequestException.statusCodeName,
+        statusCode: globalConstants.statusCode.BadRequestException.code,
+      });
+    }
+
+    const result = await Post.findByIdAndUpdate(
+      postId,
+      { $addToSet: { likes: { userId: userId } } },
+      { new: true, useFindAndModify: false }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `${userId} liked the post!!`,
+      data: result,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
+
