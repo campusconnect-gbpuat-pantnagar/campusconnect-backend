@@ -33,6 +33,7 @@ exports.AuthMiddleware = async (req, res, next) => {
       const JwtUserPayload = await verifyAccessToken(token);
       req.user = JwtUserPayload;
       console.log(req.user);
+      // TODO: CHECK WHETHER USER IS EXIST OR NOT
       next();
     } catch (err) {
       if (err.name !== "TokenExpiredError") {

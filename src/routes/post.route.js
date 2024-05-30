@@ -1,69 +1,43 @@
 const express = require("express");
-const { isSignedIn, isAuthenticated } = require("");
 const {
   createPost,
   allposts,
+  getAllPostByUser,
   getPostById,
   updatePost,
   deletePost,
-  getPost,
   likePost,
   unlikePost,
   commentPost,
-  getAllPostByUser,
 } = require("../controllers/post.controller");
-const { getUserById } = require("../controllers/user.controller");
+const { AuthMiddleware } = require("../middlewares/auth.middleware");
 const router = express.Router();
 
-//param
-router.param("userId", getUserById);
-router.param("postId", getPostById);
+// // post route - create
+router.post("/posts", AuthMiddleware, createPost);
 
-// post route - create
-router.post("/create/post/:userId", isSignedIn, isAuthenticated, createPost);
+// // get all posts - read all
+router.get("/posts", AuthMiddleware, allposts);
 
-// get all posts - read all
-router.get("/posts", isSignedIn, allposts);
+// all posts created by me
+router.get("/posts/me", AuthMiddleware, getAllPostByUser);
 
-//get a particular post
-router.get("/post/:postId", isSignedIn, getPost);
+//get the posts by id
+router.get("/posts/:postId", AuthMiddleware, getPostById);
 
-// update post
-router.put(
-  "/update/post/:userId/:postId",
-  isSignedIn,
-  isAuthenticated,
-  updatePost
-);
+// // update post
+router.patch("/posts/:postId", AuthMiddleware, updatePost);
 
 // delete post
-router.delete(
-  "/delete/post/:userId/:postId",
-  isSignedIn,
-  isAuthenticated,
-  deletePost
-);
+router.delete("/posts/:postId", AuthMiddleware, deletePost);
 
-// Like a post
-router.put("/post/like/:userId/:postId", isSignedIn, isAuthenticated, likePost);
+// // Like a post
+router.patch("/posts/:postId/like", AuthMiddleware, likePost);
 
-// Unlike a post
-router.put(
-  "/post/unlike/:userId/:postId",
-  isSignedIn,
-  isAuthenticated,
-  unlikePost
-);
+// // Unlike a post
+router.patch("/posts/:postId/unlike", AuthMiddleware, unlikePost);
 
-// comment a post
-router.put(
-  "/post/comment/:userId/:postId",
-  isSignedIn,
-  isAuthenticated,
-  commentPost
-);
-
-// get all post by user
-router.get("/:userId/posts", isSignedIn, getAllPostByUser);
+// comment on post
+router.patch("/posts/:postId/comments", AuthMiddleware, commentPost);
 
 module.exports = router;
