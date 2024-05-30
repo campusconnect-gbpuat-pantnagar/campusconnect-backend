@@ -12,23 +12,26 @@ const {
   updatePoll,
   deletePoll,
 } = require("../controllers/poll.controller");
-const { getUserById } = require("../controllers/user.controller");
+const { AuthMiddleware } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
-router.param("userId", getUserById);
-router.param("pollId", getPollById);
+// This route is used for creating the polls
+router.post("/polls", AuthMiddleware, createPoll);
 
-router.post("/create/poll/:userId", isSignedIn, isAuthenticated, createPoll);
+// this route is used for making vote on option on specific poll
+router.put("/polls/:pollId/:optionId/vote", AuthMiddleware, voteOnPoll);
 
-router.put("/vote/:pollId/:optionId/:userId", isSignedIn, isAuthenticated, voteOnPoll);
+// get all polls
+router.get("/polls", AuthMiddleware, allPolls);
 
-router.get("/polls", isSignedIn, allPolls);
+// get poll by pollId
+router.get("/polls/:pollId", AuthMiddleware, getPoll);
 
-router.get("/poll/:pollId", isSignedIn, getPoll);
+// update the specific poll by pollId
+router.put("/polls/:pollId", AuthMiddleware, updatePoll);
 
-router.put("/update/poll/:userId/:pollId", isSignedIn, isAuthenticated, updatePoll);
-
-router.delete("/delete/poll/:userId/:pollId", isSignedIn, isAuthenticated, deletePoll);
+// delete the poll by pollId
+router.delete("/polls/:pollId", AuthMiddleware, deletePoll);
 
 module.exports = router;

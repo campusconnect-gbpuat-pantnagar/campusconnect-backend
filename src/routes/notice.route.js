@@ -1,54 +1,32 @@
 const express = require("express");
+
 const {
-	isSignedIn,
-	isAuthenticated,
-	isAdmin,
-} = require("../controllers/auth.controller");
-const {
-	getNoticeById,
-	createNotice,
-	allNotices,
-	getNotice,
-	updateNotice,
-	deleteNotice,
+  getNoticeById,
+  createNotice,
+  allNotices,
+  getNotice,
+  updateNotice,
+  deleteNotice,
 } = require("../controllers/notice.controller");
-const { getUserById } = require("../controllers/user.controller");
+const { AuthMiddleware, isAdmin } = require("../middlewares/auth.middleware");
 const router = express.Router();
 
-// param
-router.param("userId", getUserById);
-router.param("noticeId", getNoticeById);
-
-// Create notice
-router.post(
-	"/create/notice",
-	isSignedIn,
-	isAuthenticated,
-	isAdmin,
-	createNotice
-);
-
+// Public routes
 // Get all notices
-router.get("/notices", isSignedIn, allNotices);
+router.get("/notices", AuthMiddleware, allNotices);
 
-// Get a particular news/notice
-router.get("/notices/:noticeId", isSignedIn, getNotice);
+// Get a particular notices by notice id
+router.get("/notices/:noticeId", AuthMiddleware, getNotice);
+
+
+// admin routes
+// Create notice
+router.post("/notices", AuthMiddleware, isAdmin, createNotice);
 
 // Update notice
-router.put(
-	"/update/notice/:userId/:noticeId",
-	isSignedIn,
-	isAuthenticated,
-	isAdmin,
-	updateNotice
-);
+router.put("/notices/:noticeId", AuthMiddleware, isAdmin, updateNotice);
 
 // Delete notice
-router.delete(
-	"/delete/notice/:userId/:noticeId",
-	isSignedIn,
-	isAuthenticated,
-	isAdmin,
-	deleteNotice
-);
+router.delete("/notices/:noticeId", AuthMiddleware, isAdmin, deleteNotice);
+
 module.exports = router;

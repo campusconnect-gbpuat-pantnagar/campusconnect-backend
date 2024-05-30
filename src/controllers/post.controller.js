@@ -2,6 +2,8 @@ const { HttpStatusCode } = require("../enums/http-status-code.enum");
 const Post = require("../models/Post");
 const { globalConstants } = require("../utils/constants");
 
+/* The `exports.getPostById` function is responsible for fetching a post by its ID. Here's a breakdown
+of what the function does: */
 exports.getPostById = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -33,6 +35,8 @@ exports.getPostById = async (req, res) => {
   }
 };
 
+/* The `exports.createPost` function is responsible for creating a new post. Here's a breakdown of what
+the function does: */
 exports.createPost = async (req, res) => {
   try {
     const { content, media } = req.body;

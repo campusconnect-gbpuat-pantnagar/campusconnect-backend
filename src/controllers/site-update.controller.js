@@ -1,4 +1,4 @@
-const Update = require("../models/Update");
+const Update = require("../models/site-update");
 
 exports.getUpdateById = (req, res, next, Id) => {
 	Update.findById(Id).exec((err, update) => {
