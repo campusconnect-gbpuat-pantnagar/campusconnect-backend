@@ -1,9 +1,5 @@
 const express = require("express");
-const {
-  isSignedIn,
-  isAuthenticated,
-  isAdmin,
-} = require("../controllers/auth.controller");
+
 const {
   getEventById,
   createEvent,
@@ -12,38 +8,22 @@ const {
   updateEvent,
   deleteEvent,
 } = require("../controllers/event.controller");
-const { getUserById } = require("../controllers/user.controller");
+const { AuthMiddleware, isAdmin } = require("../middlewares/auth.middleware");
 const router = express.Router();
 
-// param
-router.param("userId", getUserById);
-router.param("eventId", getEventById);
-
 // create event
-router.post("/create/event", isSignedIn, isAuthenticated, isAdmin, createEvent);
+router.post("/events", AuthMiddleware, isAdmin, createEvent);
 
 // all events
-router.get("/events", isSignedIn, allEvents);
+router.get("/events", AuthMiddleware, allEvents);
 
 //get a particular event
-router.get("/events/:eventId", isSignedIn, getEvent);
+router.get("/events/:eventId", AuthMiddleware, getEvent);
 
 // update event
-router.put(
-  "/update/event/:userId/:eventId",
-  isSignedIn,
-  isAuthenticated,
-  isAdmin,
-  updateEvent
-);
+router.put("/events/:eventId", AuthMiddleware, isAdmin, updateEvent);
 
 // delete event
-router.delete(
-  "/delete/event/:userId/:eventId",
-  isSignedIn,
-  isAuthenticated,
-  isAdmin,
-  deleteEvent
-);
+router.delete("/events/:eventId", AuthMiddleware, isAdmin, deleteEvent);
 
 module.exports = router;
