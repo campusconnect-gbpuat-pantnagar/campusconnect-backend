@@ -119,3 +119,43 @@ exports.updatePost = async (req, res) => {
     });
   }
 };
+
+
+// delete post
+exports.deletePost = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { postId } = req.params;
+
+    let post = await Post.findOne({ _id: postId }).exec();
+
+    if (!post || post.userId.toString() !== userId.toString()) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Post not found or you don't have permission to delete it`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
+      });
+    }
+
+    post = await Post.findOneAndRemove(
+      { _id: postId, userId },
+      { useFindAndModify: false }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Post deleted successfully",
+      data: post,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
