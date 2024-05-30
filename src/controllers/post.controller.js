@@ -33,7 +33,6 @@ exports.getPostById = async (req, res) => {
   }
 };
 
-
 exports.createPost = async (req, res) => {
   try {
     const { content, media } = req.body;
@@ -60,7 +59,6 @@ exports.createPost = async (req, res) => {
   }
 };
 
-
 exports.allposts = async (req, res) => {
   try {
     const posts = await Post.find({}).sort({ createdAt: -1 }).exec();
@@ -76,6 +74,46 @@ exports.allposts = async (req, res) => {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
       status: globalConstants.status.failed,
       message: "Failed to retrieve posts",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
+
+// update post
+exports.updatePost = async (req, res) => {
+  try {
+    const { content, media } = req.body;
+    const userId = req.user.id;
+    const { postId } = req.params;
+    const updateObj = { content, media };
+
+    let post = await Post.findOne({ _id: postId }).exec();
+    if (!post._id || post.userId.toString() !== userId.toString()) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Post not found`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
+      });
+    }
+
+    post = await Post.findOneAndUpdate(
+      { _id: postId, userId },
+      { $set: updateObj },
+      { useFindAndModify: false, new: true }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "post updated successfully..",
+      data: post,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
       error: globalConstants.statusCode.BadRequestException.statusCodeName,
       statusCode: globalConstants.statusCode.BadRequestException.code,
     });
