@@ -1,9 +1,9 @@
 const mongoose = require("mongoose")
 
 const pollSchema = new mongoose.Schema({
-  user: {
+  userId: {
     type: mongoose.Schema.ObjectId,
-    ref: "User",
+    ref: "User",  // this need to be deleted if it creates a problem
     required: true,
   },
   title: {

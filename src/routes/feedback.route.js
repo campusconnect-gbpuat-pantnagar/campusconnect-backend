@@ -8,7 +8,6 @@ const {
   getFeedbackById,
   createFeedback,
   allFeedbacks,
-  upload,
   getFeedback,
 } = require("../controllers/feedback.controller");
 const { getUserById } = require("../controllers/user.controller");
@@ -23,7 +22,6 @@ router.post(
   "/create/feedback/:userId",
   isSignedIn,
   isAuthenticated,
-  upload.single("picture"),
   createFeedback
 );
 // get all feedbacks

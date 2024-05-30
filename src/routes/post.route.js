@@ -6,7 +6,6 @@ const {
 const {
   createPost,
   allposts,
-  upload,
   getPostById,
   updatePost,
   deletePost,
@@ -28,7 +27,6 @@ router.post(
   "/create/post/:userId",
   isSignedIn,
   isAuthenticated,
-  upload.array("picture", 10),
   createPost
 )
 
@@ -43,7 +41,6 @@ router.put(
   "/update/post/:userId/:postId",
   isSignedIn,
   isAuthenticated,
-  upload.array("picture", 10),
   updatePost
 )
 

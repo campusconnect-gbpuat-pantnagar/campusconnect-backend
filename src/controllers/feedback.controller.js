@@ -1,8 +1,4 @@
 const Feedback = require("../models/Feedback")
-const multer = require("multer")
-const path = require("path")
-const fs = require("fs")
-const { getUserById } = require("../controllers/user.controller")
 
 exports.getFeedbackById = (req, res, next, Id) => {
   Feedback.findById(Id).exec((err, feedback) => {
@@ -20,46 +16,6 @@ exports.getFeedbackById = (req, res, next, Id) => {
     next()
   })
 }
-
-fs.mkdir("uploads", (err) => {
-  if (err) {
-  }
-  fs.mkdir("uploads/feedbacks", (err) => {
-    if (err) {
-    }
-  })
-})
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/feedbacks")
-  },
-  filename: (req, file, cb) => {
-    cb(
-      null,
-      "feedback_" +
-      new Date(Date.now())
-        .toLocaleString("en-IN")
-        .replace(/-|:|\/|\.|,|/g, "")
-        .replace(/ /g, "_") +
-      path.extname(file.originalname)
-    )
-  },
-})
-const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype == "image/jpeg" ||
-    file.mimetype == "image/png" ||
-    file.mimetype == "image/gif" ||
-    file.mimetype == "image/svg+xml" ||
-    file.mimetype == "video/mp4"
-  ) {
-    cb(null, true)
-  } else {
-    cb(null, false)
-  }
-}
-exports.upload = multer({ storage: storage, fileFilter: fileFilter })
 
 // create feedback
 exports.createFeedback = (req, res) => {

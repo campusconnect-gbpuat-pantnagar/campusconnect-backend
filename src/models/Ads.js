@@ -7,9 +7,9 @@ const adsSchema = new mongoose.Schema(
       default: "ads",
     },
 
-    user: {
+    userId: {
       type: mongoose.Schema.ObjectId,
-      ref: "User",
+      ref: "User",  // this need to be deleted if it creates a problem
       required: true,
     },
     title: {

@@ -1,5 +1,4 @@
 const Poll = require("../models/Poll")
-const { getUserById } = require("../controllers/user.controller")
 
 exports.getPollById = (req, res, next, Id) => {
   Poll.findById(Id)

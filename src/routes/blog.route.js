@@ -7,7 +7,6 @@ const { getUserById } = require("../controllers/user.controller")
 const {
   createBlog,
   allblogs,
-  upload,
   getBlogById,
   updateBlog,
   deleteBlog,
@@ -29,7 +28,6 @@ router.post(
   "/create/blog/:userId",
   isSignedIn,
   isAuthenticated,
-  upload.single("picture"),
   createBlog
 )
 
@@ -44,7 +42,6 @@ router.put(
   "/update/blog/:userId/:blogId",
   isSignedIn,
   isAuthenticated,
-  upload.single("picture"),
   updateBlog
 )
 

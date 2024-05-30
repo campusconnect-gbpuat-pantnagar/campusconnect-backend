@@ -1,8 +1,4 @@
 const Post = require("../models/Post")
-const multer = require("multer")
-const path = require("path")
-const fs = require("fs")
-const { getUserById } = require("../controllers/user.controller")
 
 exports.getPostById = (req, res, next, Id) => {
   Post.findById(Id)
@@ -25,46 +21,6 @@ exports.getPostById = (req, res, next, Id) => {
       next()
     })
 }
-
-fs.mkdir("uploads", (err) => {
-  if (err) {
-  }
-  fs.mkdir("uploads/posts", (err) => {
-    if (err) {
-    }
-  })
-})
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/posts")
-  },
-  filename: (req, file, cb) => {
-    cb(
-      null,
-      "post_" +
-      new Date(Date.now())
-        .toISOString()
-        .replace(/-|:|Z|\./g, "")
-        .replace(/T/g, "_") +
-      path.extname(file.originalname)
-    )
-  },
-})
-const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype == "image/jpeg" ||
-    file.mimetype == "image/png" ||
-    file.mimetype == "image/gif" ||
-    file.mimetype == "image/svg+xml" ||
-    file.mimetype == "video/mp4"
-  ) {
-    cb(null, true)
-  } else {
-    cb(null, false)
-  }
-}
-exports.upload = multer({ storage: storage, fileFilter: fileFilter })
 
 exports.createPost = (req, res) => {
   const { user, content } = req.body
@@ -115,22 +71,6 @@ exports.getPost = (req, res) => {
 
 // update post
 exports.updatePost = (req, res) => {
-  Post.findById({ _id: req.post._id }).exec((err, post) => {
-    for (let picture of post.picture) {
-      let path = picture
-
-      fs.readdir(path, (err, files) => {
-        if (path) {
-          fs.unlink(path, (err) => {
-            if (err) {
-              console.error(err)
-              return
-            }
-          })
-        }
-      })
-    }
-  })
   const { user, content } = req.body
   const files = req.files
   const picture = []

@@ -1,8 +1,4 @@
 const Blog = require("../models/Blogs");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const { getUserById } = require("../controllers/user.controller");
 
 exports.getBlogById = (req, res, next, Id) => {
   Blog.findById(Id)
@@ -24,40 +20,6 @@ exports.getBlogById = (req, res, next, Id) => {
       next();
     });
 };
-
-fs.mkdir("uploads", (err) => {
-  if (err) {
-  }
-  fs.mkdir("uploads/blogs", (err) => {
-    if (err) {
-    }
-  });
-});
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/blogs");
-  },
-  filename: (req, file, cb) => {
-    cb(
-      null,
-      "blog_" +
-      new Date(Date.now())
-        .toISOString()
-        .replace(/-|:|Z|\./g, "")
-        .replace(/T/g, "_") +
-      path.extname(file.originalname)
-    );
-  },
-});
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype == "image/jpeg" || file.mimetype == "image/png") {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
-exports.upload = multer({ storage: storage, fileFilter: fileFilter });
 
 //create blog
 exports.createBlog = (req, res) => {
@@ -111,21 +73,6 @@ exports.getBlog = (req, res) => {
 
 // update blog
 exports.updateBlog = (req, res) => {
-  Blog.findById({ _id: req.blogs._id }).exec((err, blog) => {
-    if (blog.picture) {
-      let path = blog.picture;
-      fs.readdir(path, (err, files) => {
-        if (path) {
-          fs.unlink(path, (err) => {
-            if (err) {
-              console.error(err);
-              return;
-            }
-          });
-        }
-      });
-    }
-  });
   const { user, title, content, link } = req.body;
   var picture;
   if (req.file) {
@@ -176,24 +123,6 @@ exports.deleteBlog = (req, res) => {
     }
   );
 };
-
-// delete blog
-// exports.deleteBlog = (req, res) => {
-//   Blog.findById({ _id: req.blogs._id }).exec((err, blog) => {
-//     if (blog.picture) {
-//       let path = blog.picture;
-//       fs.readdir(path, (err, files) => {
-//         if (path) {
-//           fs.unlink(path, (err) => {
-//             if (err) {
-//               console.error(err);
-//               return;
-//             }
-//           });
-//         }
-//       });
-//     }
-//   });
 
 // Upvote a blog
 exports.upvoteBlog = (req, res) => {

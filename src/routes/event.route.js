@@ -7,7 +7,6 @@ const {
 const {
 	getEventById,
 	createEvent,
-	upload,
 	allEvents,
 	getEvent,
 	updateEvent,
@@ -41,7 +40,6 @@ router.put(
 	isSignedIn,
 	isAuthenticated,
 	isAdmin,
-	upload.single("picture"),
 	updateEvent
 );
 

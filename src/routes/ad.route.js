@@ -2,7 +2,6 @@ const express = require("express");
 const {
 	getAdById,
 	createAds,
-	upload,
 	allAds,
 	updateAd,
 	deleteAd,
@@ -28,7 +27,6 @@ router.post(
 	"/create/ad/:userId",
 	isSignedIn,
 	isAuthenticated,
-	upload.array("picture", 5),
 	createAds
 );
 
@@ -43,7 +41,6 @@ router.put(
 	"/update/ad/:userId/:adId",
 	isSignedIn,
 	isAuthenticated,
-	upload.array("picture", 5),
 	updateAd
 );
 

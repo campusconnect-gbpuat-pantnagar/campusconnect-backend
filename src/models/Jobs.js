@@ -15,6 +15,16 @@ const JobSchema = new mongoose.Schema(
       required: true
     },
 
+    batchYear: {
+      type: String,
+      required: true
+    },
+
+    college: {
+      type: String,
+      required: true
+    },
+
     eligibility: {
       type: String,
       required: true

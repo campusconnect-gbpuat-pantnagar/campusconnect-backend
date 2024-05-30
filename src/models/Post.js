@@ -6,9 +6,9 @@ const postSchema = new mongoose.Schema(
 			type: String,
 			default: "post",
 		},
-		user: {
+		userId: {
 			type: mongoose.Schema.ObjectId,
-			ref: "User",
+			ref: "User",  // this need to be deleted if it creates a problem
 			required: true,
 		},
 		content: {

@@ -1,4 +1,3 @@
-const { getUserById } = require("../controllers/user.controller");
 const Update = require("../models/Update");
 
 exports.getUpdateById = (req, res, next, Id) => {
