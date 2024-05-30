@@ -4,7 +4,6 @@ const {
   getUpdateById,
   createUpdate,
   getUpdates,
-  getUpdate,
   deleteUpdate,
 } = require("../controllers/site-update.controller");
 const { isAdmin, AuthMiddleware } = require("../middlewares/auth.middleware");
@@ -18,7 +17,7 @@ router.post("/site-updates", AuthMiddleware, isAdmin, createUpdate);
 router.get("/site-updates", AuthMiddleware, getUpdates);
 
 //get a particular update
-router.get("/site-updates/:siteUpdateId", AuthMiddleware, getUpdate);
+router.get("/site-updates/:siteUpdateId", AuthMiddleware, getUpdateById);
 
 // delete update
 router.delete(

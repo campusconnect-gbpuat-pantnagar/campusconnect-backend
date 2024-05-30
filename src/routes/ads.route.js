@@ -5,7 +5,6 @@ const {
   allAds,
   updateAd,
   deleteAd,
-  getAd,
   commentAd,
   likeAd,
   unlikeAd,
@@ -21,7 +20,7 @@ router.post("/ads/", AuthMiddleware, createAds);
 router.get("/ads", AuthMiddleware, allAds);
 
 //get a particular ad
-router.get("/ads/:adId", AuthMiddleware, getAd);
+router.get("/ads/:adId", AuthMiddleware, getAdById);
 
 // update ad
 router.put("/ads/:adId", AuthMiddleware, updateAd);

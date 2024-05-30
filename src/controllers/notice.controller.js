@@ -1,89 +1,155 @@
 const Notice = require("../models/Notice");
 
-exports.getNoticeById = (req, res, next, Id) => {
-	Notice.findById(Id).exec((err, notice) => {
-		if (err) {
-			return res.status(400).json({
-				errorMsg: "An error occured",
-			});
-		}
+exports.getNoticeById = async (req, res) => {
+	try {
+		const { noticeId } = req.params;
+		const notice = await Notice.findById(noticeId).exec();
+	
 		if (!notice) {
-			return res.status(400).json({
-				errorMsg: "News/Notice not found",
-			});
+		  return res.status(HttpStatusCode.NOT_FOUND).json({
+			status: globalConstants.status.failed,
+			message: `Notice not found !!`,
+			error: globalConstants.statusCode.NotFoundException.statusCodeName,
+			statusCode: globalConstants.statusCode.NotFoundException.code,
+		  });
 		}
-		req.notice = notice;
-		next();
-	});
+	
+		return res.status(HttpStatusCode.OK).json({
+		  status: globalConstants.status.success,
+		  message: `Get notice by noticeId: ${noticeId}`,
+		  data: notice,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: "Failed to fetch notice",
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	}
 };
 
 // Create notice
-exports.createNotice = (req, res) => {
-	const { title, description, link } = req.body;
+exports.createNotice = async (req, res) => {
+	try {
+		const { title, description, link } = req.body;
+		
+		const newNotice = new Notice({ title, description, link });
+		const notice = await newNotice.save();
 	
-	// console.log(req);
-	console.log(title);
-	console.log(description);
-	console.log(link);
-	const newNotice = Notice({ title, description, link });
-	newNotice.save((err, notice) => {
-		if (err) {
-			res.status(400).json({
-				errorMsg: "An error occured",
-			});
-		}
-		return res.status(200).json(notice);
-	});
+		return res.status(HttpStatusCode.CREATED).json({
+		  status: globalConstants.status.success,
+		  message: "Notice created successfully",
+		  data: notice,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeCreated.code,
+		});
+	  } catch (err) {
+		console.error(err);
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: "Failed to create notice",
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	  }
 };
 
 // Read all notices
-exports.allNotices = (req, res) => {
-	Notice.find().exec((err, notices) => {
-		if (err) {
-			res.status(400).json({
-				errorMsg: "An error occured",
-			});
-		}
-		return res.json(notices);
-	});
-};
-
-// Read a particular notice
-exports.getNotice = (req, res) => {
-	return res.json(req.notice);
+exports.allNotices = async (req, res) => {
+	try {
+		const notices = await Notice.find({}).sort({ createdAt: -1 }).exec();
+	
+		return res.status(HttpStatusCode.OK).json({
+		  status: globalConstants.status.success,
+		  message: "All notices retrieved successfully",
+		  data: notices,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: "Failed to retrieve notices",
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	}
 };
 
 // Update notices
-exports.updateNotice = (req, res) => {
-	Notice.findByIdAndUpdate(
-		{ _id: req.notice._id },
-		{ $set: req.body },
-		{ useFindAndModify: false, new: true },
-		(err, notice) => {
-			if (err || !notice) {
-				return res.status(400).json({
-					error: "An error occured,  try again later",
-				});
-			}
-			return res.status(200).json(notice);
+exports.updateNotice = async (req, res) => {
+	try {
+		const { title, description, link } = req.body;
+		const { noticeId } = req.params;
+		const updateObj = { title, description, link };
+	
+		let notice = await Notice.findOne({ _id: noticeId }).exec();
+		if (!notice._id) {
+		  return res.status(HttpStatusCode.FORBIDDEN).json({
+			status: globalConstants.status.failed,
+			message: `Notice not found`,
+			error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+			statusCode: globalConstants.statusCode.ForbiddenException.code,
+		  });
 		}
-	);
+	
+		notice = await Notice.findOneAndUpdate(
+		  { _id: noticeId },
+		  { $set: updateObj },
+		  { useFindAndModify: false, new: true }
+		).exec();
+	
+		return res.status(HttpStatusCode.OK).json({
+		  status: globalConstants.status.success,
+		  message: "Notice updated successfully..",
+		  data: notice,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+		});
+	} catch (err) {
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: `${err.message}`,
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	}
 };
 
 // Delete notices
-exports.deleteNotice = (req, res) => {
-	Notice.findByIdAndRemove(
-		{ _id: req.notice._id },
-		{ useFindAndModify: false, new: true },
-		(err, notice) => {
-			if (err || !notice) {
-				return res.status(400).json({
-					error: "An error occured,  try again later",
-				});
-			}
-			return res
-				.status(200)
-				.json({ message: "News/Notice has been removed" });
+exports.deleteNotice = async (req, res) => {
+	try {
+		const { noticeId } = req.params;
+		let notice = await Notice.findOne({ _id: noticeId }).exec();
+	
+		if (!notice) {
+		  return res.status(HttpStatusCode.FORBIDDEN).json({
+			status: globalConstants.status.failed,
+			message: `Notice not found or you don't have permission to delete it`,
+			error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+			statusCode: globalConstants.statusCode.ForbiddenException.code,
+		  });
 		}
-	);
+	
+		notice = await Notice.findOneAndRemove(
+		  { _id: noticeId },
+		  { useFindAndModify: false }
+		).exec();
+	
+		return res.status(HttpStatusCode.OK).json({
+		  status: globalConstants.status.success,
+		  message: "Notice deleted successfully",
+		  data: notice,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: `${err.message}`,
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	}
 };

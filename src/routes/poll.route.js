@@ -8,8 +8,6 @@ const {
   createPoll,
   voteOnPoll,
   allPolls,
-  getPoll,
-  updatePoll,
   deletePoll,
 } = require("../controllers/poll.controller");
 const { AuthMiddleware } = require("../middlewares/auth.middleware");
@@ -26,10 +24,7 @@ router.put("/polls/:pollId/:optionId/vote", AuthMiddleware, voteOnPoll);
 router.get("/polls", AuthMiddleware, allPolls);
 
 // get poll by pollId
-router.get("/polls/:pollId", AuthMiddleware, getPoll);
-
-// update the specific poll by pollId
-router.put("/polls/:pollId", AuthMiddleware, updatePoll);
+router.get("/polls/:pollId", AuthMiddleware, getPollById);
 
 // delete the poll by pollId
 router.delete("/polls/:pollId", AuthMiddleware, deletePoll);

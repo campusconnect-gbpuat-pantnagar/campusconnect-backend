@@ -4,7 +4,6 @@ const {
   getFeedbackById,
   createFeedback,
   allFeedbacks,
-  getFeedback,
 } = require("../controllers/feedback.controller");
 const { AuthMiddleware, isAdmin } = require("../middlewares/auth.middleware");
 const router = express.Router();
@@ -17,6 +16,6 @@ router.post("/feedbacks", AuthMiddleware, createFeedback);
 router.get("/feedbacks", AuthMiddleware, isAdmin, allFeedbacks);
 
 //get a particular feedback
-router.get("/feedbacks/:feedbackId", AuthMiddleware, isAdmin, getFeedback);
+router.get("/feedbacks/:feedbackId", AuthMiddleware, isAdmin, getFeedbackById);
 
 module.exports = router;

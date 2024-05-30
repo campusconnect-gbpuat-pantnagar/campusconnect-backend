@@ -6,7 +6,6 @@ const {
   getBlogById,
   updateBlog,
   deleteBlog,
-  getBlog,
   commentBlog,
   upvoteBlog,
   downvoteBlog,
@@ -20,7 +19,7 @@ const router = express.Router();
 router.post("/blogs", AuthMiddleware, createBlog);
 
 //get a particular blog
-router.get("/blogs/:blogId", AuthMiddleware, getBlog);
+router.get("/blogs/:blogId", AuthMiddleware, getBlogById);
 
 // all blogs
 router.get("/blogs", AuthMiddleware, allblogs);

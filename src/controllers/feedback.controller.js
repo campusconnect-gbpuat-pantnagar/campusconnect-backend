@@ -1,62 +1,81 @@
 const Feedback = require("../models/Feedback")
 
-exports.getFeedbackById = (req, res, next, Id) => {
-  Feedback.findById(Id).exec((err, feedback) => {
-    if (err) {
-      return res.status(400).json({
-        errorMsg: "An error occured",
-      })
-    }
+exports.getFeedbackById = async (req, res) => {
+  try {
+    const { feedbackId } = req.params;
+    const feedback = await Feedback.findById(feedbackId).exec();
+
     if (!feedback) {
-      return res.status(400).json({
-        errorMsg: "Feedback not found",
-      })
+      return res.status(HttpStatusCode.NOT_FOUND).json({
+        status: globalConstants.status.failed,
+        message: `Feedback not found !!`,
+        error: globalConstants.statusCode.NotFoundException.statusCodeName,
+        statusCode: globalConstants.statusCode.NotFoundException.code,
+      });
     }
-    req.feedback = feedback
-    next()
-  })
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `Get feedback by feedbackId: ${feedbackId}`,
+      data: feedback,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to fetch feedback",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 }
 
 // create feedback
-exports.createFeedback = (req, res) => {
-  const user = req.profile
-  const { feedback } = req.body
-  var picture
-  if (req.file) {
-    picture = req.file.path
+exports.createFeedback = async (req, res) => {
+  try {
+    const { feedback, media } = req.body;
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    const newFeedback = new Feedback({ userId, feedback, media });
+    const fd = await newFeedback.save();
+
+    return res.status(HttpStatusCode.CREATED).json({
+      status: globalConstants.status.success,
+      message: "Feedback created successfully",
+      data: fd,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeCreated.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to create feedback",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
   }
-  const newFeedback = Feedback({ user, feedback, picture })
-  newFeedback.save((err, feedback) => {
-    if (err) {
-      return res.status(400).json({
-        errorMsg: "An error occured",
-      })
-    }
-    res.status(200).json(feedback)
-  })
 }
 
 //get all feedbacks
-exports.allFeedbacks = (req, res) => {
-  Feedback.find().exec((err, feedbacks) => {
-    if (err) {
-      res.status(400).json({
-        errorMsg: "An error occured",
-      })
-    }
+exports.allFeedbacks = async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find({}).sort({ createdAt: -1 }).exec();
 
-    return res.json(feedbacks)
-  })
-}
-
-//Read a particular feedback
-exports.getFeedback = (req, res) => {
-  Feedback.find({ _id: req.feedback._id }).exec((err, feedback) => {
-    if (err) {
-      res.status(400).json({
-        errorMsg: "An error occured",
-      })
-    }
-    return res.json(feedback)
-  })
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All feedbacks retrieved successfully",
+      data: feedbacks,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to retrieve feedbacks",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 }

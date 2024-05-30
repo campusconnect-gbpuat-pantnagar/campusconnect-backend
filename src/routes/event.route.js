@@ -4,7 +4,6 @@ const {
   getEventById,
   createEvent,
   allEvents,
-  getEvent,
   updateEvent,
   deleteEvent,
 } = require("../controllers/event.controller");
@@ -15,7 +14,7 @@ const router = express.Router();
 router.get("/events", AuthMiddleware, allEvents);
 
 //get a particular event
-router.get("/events/:eventId", AuthMiddleware, getEvent);
+router.get("/events/:eventId", AuthMiddleware, getEventById);
 
 // admin routes
 

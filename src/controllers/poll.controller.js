@@ -1,96 +1,165 @@
 const Poll = require("../models/Poll")
 
-exports.getPollById = (req, res, next, Id) => {
-  Poll.findById(Id)
-    .populate("options.votes", "name")  
-    .exec((err, poll) => {
-      if (err || !poll) {
-        return res.status(400).json({
-          errorMsg: "Poll not found or an error occurred",
-        });
-      }
-      req.poll = poll;
-      next();
-    });
-};
+exports.getPollById = async (req, res) => {
+  try {
+    const { pollId } = req.params;
+    const poll = await Poll.findById(pollId).exec();
 
-
-exports.createPoll = (req, res) => {
-  const { user, title, options } = req.body;
-  const poll = new Poll({
-    user,
-    title,
-    options: options.map(option => ({ text: option, votes: [] }))
-  });
-  poll.save((err, savedPoll) => {
-    if (err) {
-      return res.status(400).json({ errorMsg: "Failed to create poll" });
+    if (!poll) {
+      return res.status(HttpStatusCode.NOT_FOUND).json({
+        status: globalConstants.status.failed,
+        message: `Poll not found !!`,
+        error: globalConstants.statusCode.NotFoundException.statusCodeName,
+        statusCode: globalConstants.statusCode.NotFoundException.code,
+      });
     }
-    res.json(savedPoll);
-  });
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `Get poll by pollId: ${pollId}`,
+      data: poll,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to fetch poll",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 
-exports.voteOnPoll = (req, res) => {
-  const { pollId, optionId, userId } = req.params;
-  Poll.findOneAndUpdate(
-    { "_id": pollId, "options._id": optionId },
-    { 
-      $addToSet: { 
-        "options.$.votes": userId, 
-        "totalVotes": userId 
-      }
-    },  
-    { new: true }
-  ).exec((err, poll) => {
-    if (err || !poll) {
-      return res.status(400).json({ errorMsg: "Failed to register vote" });
+exports.createPoll = async (req, res) => {
+  try {
+    const { title, options } = req.body;
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    const newPoll = new Poll({ userId, title, options });
+    const poll = await newPoll.save();
+
+    return res.status(HttpStatusCode.CREATED).json({
+      status: globalConstants.status.success,
+      message: "Poll created successfully",
+      data: poll,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeCreated.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to create poll",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
+
+
+exports.voteOnPoll = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { pollId, optionId } = req.params;
+
+    let poll = await Poll.findOne({ _id: pollId }).exec();
+
+    if (!poll) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Poll not found`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
+      });
     }
-    res.json(poll);
-  });
-};
 
+    poll = await Poll.findOneAndUpdate(
+      { "_id": pollId, "options._id": optionId },
+      { 
+        $addToSet: { 
+          "options.$.votes": userId, 
+          "totalVotes": userId 
+        }
+      },  
+      { new: true }
+    ).exec();
 
-exports.allPolls = (req, res) => {
-  Poll.find()
-    .populate("user", "name")  
-    .exec((err, polls) => {
-      if (err) {
-        return res.status(400).json({ errorMsg: "An error occurred" });
-      }
-      res.json(polls);
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Voted on poll successfully",
+      data: poll,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
     });
-};
-
-
-exports.getPoll = (req, res) => {
-  res.json(req.poll);
-};
-
-
-exports.updatePoll = (req, res) => {
-  const update = { title: req.body.title, options: req.body.options };
-  Poll.findByIdAndUpdate(req.poll._id, update, { new: true })
-    .exec((err, updatedPoll) => {
-      if (err || !updatedPoll) {
-        return res.status(400).json({
-          errorMsg: "Failed to update poll"
-        });
-      }
-      res.json(updatedPoll);
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
     });
+  }
 };
 
 
-exports.deletePoll = (req, res) => {
-  Poll.findByIdAndRemove(req.poll._id)
-    .exec((err, poll) => {
-      if (err || !poll) {
-        return res.status(400).json({
-          errorMsg: "Failed to delete poll"
-        });
-      }
-      res.status(200).json({ message: "Poll deleted successfully" });
+exports.allPolls = async (req, res) => {
+  try {
+    const polls = await Poll.find({}).sort({ createdAt: -1 }).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All polls retrieved successfully",
+      data: polls,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
     });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to retrieve polls",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
+
+exports.deletePoll = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { pollId } = req.params;
+
+    let poll = await Poll.findOne({ _id: pollId }).exec();
+
+    if (!poll || poll.userId.toString() !== userId.toString()) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Poll not found or you don't have permission to delete it`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
+      });
+    }
+
+    poll = await Poll.findOneAndRemove(
+      { _id: pollId, userId },
+      { useFindAndModify: false }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Poll deleted successfully",
+      data: poll,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 

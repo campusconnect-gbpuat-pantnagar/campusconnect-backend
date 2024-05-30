@@ -1,100 +1,156 @@
 const Event = require("../models/Event");
 
-exports.getEventById = (req, res, next, Id) => {
-	Event.findById(Id).exec((err, event) => {
-		if (err) {
-			return res.status(400).json({
-				errorMsg: "An error occured",
-			});
-		}
+exports.getEventById = async (req, res) => {
+	try {
+		const { eventId } = req.params;
+		const event = await Event.findById(eventId).exec();
+	
 		if (!event) {
-			return res.status(400).json({
-				errorMsg: "Event not found",
-			});
+		  return res.status(HttpStatusCode.NOT_FOUND).json({
+			status: globalConstants.status.failed,
+			message: `Event not found !!`,
+			error: globalConstants.statusCode.NotFoundException.statusCodeName,
+			statusCode: globalConstants.statusCode.NotFoundException.code,
+		  });
 		}
-		req.event = event;
-		next();
-	});
+	
+		return res.status(HttpStatusCode.OK).json({
+		  status: globalConstants.status.success,
+		  message: `Get event by eventId: ${eventId}`,
+		  data: event,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+			status: globalConstants.status.failed,
+			message: "Failed to fetch event",
+			error: globalConstants.statusCode.BadRequestException.statusCodeName,
+			statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	}
 };
 
 // Create an Event
-exports.createEvent = (req, res) => {
-	const { title, description, date, venue } = req.body;
-	const files = req.files
-	const picture = []
-	for (let i = 0; i < files.length; i++) {
-		picture[i] = files[i].path
+exports.createEvent = async (req, res) => {
+	try {
+		const { title, description, date, venue, media } = req.body;
+	
+		const newEvent = new Event({ title, description, date, venue, media });
+		const event = await newEvent.save();
+	
+		return res.status(HttpStatusCode.CREATED).json({
+		  status: globalConstants.status.success,
+		  message: "Event created successfully",
+		  data: event,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeCreated.code,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: "Failed to create event",
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
 	}
-	const newEvent = Event({ title, description, date, venue, picture });
-	newEvent.save((err, event) => {
-		if (err) {
-			res.status(400).json({
-				errorMsg: "An error occured",
-			});
-		}
-		return res.status(200).json(event);
-	});
 };
 
 // Get all Events
 
-exports.allEvents = (req, res) => {
-	Event.find()
-		.sort({ createdAt: -1 })
-		.exec((err, events) => {
-			if (err) {
-				res.status(400).json({
-					errorMsg: "An error occured",
-				});
-			}
-			return res.json(events);
+exports.allEvents = async (req, res) => {
+	try {
+		const events = await Event.find({}).sort({ createdAt: -1 }).exec();
+	
+		return res.status(HttpStatusCode.OK).json({
+		  status: globalConstants.status.success,
+		  message: "All events retrieved successfully",
+		  data: events,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
 		});
-};
-
-//Read a particular event
-exports.getEvent = (req, res) => {
-	return res.json(req.event);
+	} catch (err) {
+		console.error(err);
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: "Failed to retrieve events",
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	}
 };
 
 // update event
-exports.updateEvent = (req, res) => {
-
-	const { title, description, date, venue } = req.body;
-	const files = req.files
-	const picture = []
-	for (let i = 0; i < files.length; i++) {
-		picture[i] = files[i].path
-	}
-
-	const updateObj = { title, description, date, venue, picture };
-
-	Event.findByIdAndUpdate(
-		{ _id: req.event._id },
-		{ $set: updateObj },
-		{ useFindAndModify: false, new: true },
-		(err, event) => {
-			if (err || !event) {
-				return res.status(400).json({
-					error: "An error occured,  try again later",
-				});
-			}
-			return res.status(200).json(event);
+exports.updateEvent = async (req, res) => {
+	try {
+		const { title, description, date, venue, media } = req.body;
+		const { eventId } = req.params;
+		const updateObj = { title, description, date, venue, media };
+	
+		let event = await Event.findOne({ _id: eventId }).exec();
+		if (!event._id) {
+		  return res.status(HttpStatusCode.FORBIDDEN).json({
+			status: globalConstants.status.failed,
+			message: `Event not found`,
+			error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+			statusCode: globalConstants.statusCode.ForbiddenException.code,
+		  });
 		}
-	);
+	
+		event = await Event.findOneAndUpdate(
+		  { _id: eventId },
+		  { $set: updateObj },
+		  { useFindAndModify: false, new: true }
+		).exec();
+	
+		return res.status(HttpStatusCode.OK).json({
+		  status: globalConstants.status.success,
+		  message: "Event updated successfully..",
+		  data: event,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+		});
+	  } catch (err) {
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: `${err.message}`,
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	  }
 };
 
 // delete event
-exports.deleteEvent = (req, res) => {
-	Event.findByIdAndRemove(
-		{ _id: req.event._id },
-		{ useFindAndModify: false, new: true },
-		(err, event) => {
-			if (err || !event) {
-				return res.status(400).json({
-					error: "An error occured,  try again later",
-				});
-			}
-			return res.status(200).json({ message: "Event has been deleted" });
+exports.deleteEvent = async (req, res) => {
+	try {
+		const { eventId } = req.params;
+		let event = await Event.findOne({ _id: eventId }).exec();
+	
+		if (!event) {
+		  return res.status(HttpStatusCode.FORBIDDEN).json({
+			status: globalConstants.status.failed,
+			message: `Event not found or you don't have permission to delete it`,
+			error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+			statusCode: globalConstants.statusCode.ForbiddenException.code,
+		  });
 		}
-	);
+	
+		event = await Event.findOneAndRemove(
+		  { _id: eventId },
+		  { useFindAndModify: false }
+		).exec();
+	
+		return res.status(HttpStatusCode.OK).json({
+		  status: globalConstants.status.success,
+		  message: "Event deleted successfully",
+		  data: event,
+		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(HttpStatusCode.BAD_REQUEST).json({
+		  status: globalConstants.status.failed,
+		  message: `${err.message}`,
+		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
+		  statusCode: globalConstants.statusCode.BadRequestException.code,
+		});
+	}
 };

@@ -1,129 +1,182 @@
 const Ads = require("../models/Ads");
 
-exports.getAdById = (req, res, next, Id) => {
-  Ads.findById(Id).exec((err, ad) => {
-    if (err) {
-      return res.status(400).json({
-        errorMsg: "An error occured",
-      });
-    }
+exports.getAdById = async (req, res) => {
+  try {
+    const { adId } = req.params;
+    const ad = await Ads.findById(adId).exec();
+
     if (!ad) {
-      return res.status(400).json({
-        errorMsg: "Ad not found",
+      return res.status(HttpStatusCode.NOT_FOUND).json({
+        status: globalConstants.status.failed,
+        message: `Ad not found !!`,
+        error: globalConstants.statusCode.NotFoundException.statusCodeName,
+        statusCode: globalConstants.statusCode.NotFoundException.code,
       });
     }
-    req.ads = ad;
-    next();
-  });
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `Get ad by adId: ${adId}`,
+      data: ad,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to fetch ad",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 //Create an Ad
-exports.createAds = (req, res) => {
-  const { user, title, content, price, contact } = req.body;
-  const files = req.files;
-  const picture = [];
-  for (let i = 0; i < files.length; i++) {
-    picture[i] = files[i].path;
+exports.createAds = async (req, res) => {
+  try {
+    const { title, content, price, contact, media } = req.body;
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    const newAd = new Ads({ userId, title, content, price, contact, media });
+    const ad = await newAd.save();
+
+    return res.status(HttpStatusCode.CREATED).json({
+      status: globalConstants.status.success,
+      message: "Ad created successfully",
+      data: ad,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeCreated.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to create ad",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
   }
-  const newAd = Ads({ user, title, content, contact, price, picture });
-  newAd.save((err, ad) => {
-    if (err) {
-      res.status(400).json("error");
-    }
-    return res.status(200).json(ad);
-  });
 };
 
 //Read all ads
-exports.allAds = (req, res) => {
-  Ads.find()
-    .populate("user") // Add this line to populate the user details
-    .sort({ createdAt: -1 })
-    .exec((err, ads) => {
-      if (err) {
-        return res.status(400).json({
-          errorMsg: "An error occurred",
-        });
-      }
-      return res.json(ads);
-    });
-};
+exports.allAds = async (req, res) => {
+  try {
+    const ads = await Ads.find({}).sort({ createdAt: -1 }).exec();
 
-//Read a particular ad
-exports.getAd = (req, res) => {
-  // Ads.find({_id: req.ads._id}).exec((err, ad) => {
-  //     if (err) {
-  //       res.status(400).json("error")
-  //     }
-  //     return res.json(ad)
-  // })
-  return res.json(req.ads);
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All ads retrieved successfully",
+      data: ads,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to retrieve ads",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 //Update an Ad
-exports.updateAd = (req, res) => {
-  const { user, title, content, contact, price } = req.body;
-  const files = req.files;
-  const picture = [];
-  for (let i = 0; i < files.length; i++) {
-    picture[i] = files[i].path;
-  }
-  const updateObj = { user, title, content, price, contact, picture };
+exports.updateAd = async (req, res) => {
+  try {
+    const { title, content, price, contact, media } = req.body;
+    const userId = req.user.id;
+    const { adId } = req.params;
+    const updateObj = { title, content, price, contact, media };
 
-  Ads.findByIdAndUpdate(
-    { _id: req.ads._id },
-    { $set: updateObj },
-    { useFindAndModify: false, new: true },
-    (err, ad) => {
-      if (err || !ad) {
-        return res.status(400).json({
-          error: "An error occured,  try again later",
-        });
-      }
-      return res.status(200).json(ad);
+    let ad = await Ads.findOne({ _id: adId }).exec();
+    if (!ad._id || ad.userId.toString() !== userId.toString()) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Ad not found`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
+      });
     }
-  );
+
+    ad = await Ads.findOneAndUpdate(
+      { _id: adId, userId },
+      { $set: updateObj },
+      { useFindAndModify: false, new: true }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Ad updated successfully..",
+      data: ad,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 //delete an ad
-exports.deleteAd = (req, res) => {
-  Ads.findByIdAndRemove(
-    { _id: req.ads._id },
-    { useFindAndModify: false },
-    (err, ad) => {
-      if (err || !ad) {
-        return res.status(400).json({
-          errorMsg: "An error occurred, try again later",
-        });
-      }
+exports.deleteAd = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { adId } = req.params;
 
-      // After successful deletion, fetch all ads and return them to the client
-      Ads.find({}, (err, ads) => {
-        if (err) {
-          return res.status(400).json({
-            errorMsg: "An error occurred while fetching blogs",
-          });
-        }
+    let ad = await Ads.findOne({ _id: adId }).exec();
 
-        return res.status(200).json({
-          message: "Ad has been deleted",
-          updatedAds: ads, // Send the updated list of ads back to the client
-        });
+    if (!ad || ad.userId.toString() !== userId.toString()) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Ad not found or you don't have permission to delete it`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
       });
     }
-  );
+
+    ad = await Ads.findOneAndRemove(
+      { _id: adId, userId },
+      { useFindAndModify: false }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Ad deleted successfully",
+      data: ad,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
-exports.getAllAdsByUser = (req, res) => {
-  Ads.find({ user: req.profile._id })
-    .populate("user upvotes.user comments.user")
-    .sort({ createdAt: -1 })
-    .exec((err, ads) => {
-      if (err) {
-        return res
-          .json(400)
-          .json({ errorMsg: "An error occured, try again later" });
-      }
-      res.status(200).json(ads);
+exports.getAllAdsByUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const ads = await Ads.find({ userId }).sort({ createdAt: -1 }).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All ads",
+      data: ads,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
     });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };

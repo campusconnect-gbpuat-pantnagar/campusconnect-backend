@@ -4,7 +4,6 @@ const {
   getNoticeById,
   createNotice,
   allNotices,
-  getNotice,
   updateNotice,
   deleteNotice,
 } = require("../controllers/notice.controller");
@@ -16,7 +15,7 @@ const router = express.Router();
 router.get("/notices", AuthMiddleware, allNotices);
 
 // Get a particular notices by notice id
-router.get("/notices/:noticeId", AuthMiddleware, getNotice);
+router.get("/notices/:noticeId", AuthMiddleware, getNoticeById);
 
 
 // admin routes

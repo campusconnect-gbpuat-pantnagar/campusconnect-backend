@@ -1,220 +1,358 @@
 const Blog = require("../models/Blogs");
 
-exports.getBlogById = (req, res, next, Id) => {
-  Blog.findById(Id)
-    .populate("user upvotes.user comments.user")
-    .exec((err, blog) => {
-      if (err) {
-        return res.status(400).json({
-          errorMsg: "An error occured",
-        });
-      }
-      if (!blog) {
-        return res.status(400).json({
-          errorMsg: "Blog not found",
-        });
-      }
-      blog.user.salt = undefined;
-      blog.user.encryptedpassword = undefined;
-      req.blogs = blog;
-      next();
+exports.getBlogById = async (req, res) => {
+  try {
+    const { blogId } = req.params;
+    const blog = await Blog.findById(blogId).exec();
+
+    if (!blog) {
+      return res.status(HttpStatusCode.NOT_FOUND).json({
+        status: globalConstants.status.failed,
+        message: `Blog not found !!`,
+        error: globalConstants.statusCode.NotFoundException.statusCodeName,
+        statusCode: globalConstants.statusCode.NotFoundException.code,
+      });
+    }
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `Get blog by blogId: ${blogId}`,
+      data: blog,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
     });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to fetch blog",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 //create blog
-exports.createBlog = (req, res) => {
-  const { user, title, content, link } = req.body;
-  var picture;
-  if (req.file) {
-    picture = req.file.path;
+exports.createBlog = async (req, res) => {
+  try {
+    const { title, content, link, media } = req.body;
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    const newBlog = new Blog({ userId, title, content, link, media });
+    const blog = await newBlog.save();
+
+    return res.status(HttpStatusCode.CREATED).json({
+      status: globalConstants.status.success,
+      message: "Blog created successfully",
+      data: blog,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeCreated.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to create blog",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
   }
-  const newBlog = Blog({ user, title, content, picture, link });
-  newBlog.save((err, blog) => {
-    if (err) {
-      res.status(400).json({
-        errorMsg: "An error occured",
-      });
-    }
-    return res.status(200).json(blog);
-  });
 };
 
 // read all blogs
-exports.allblogs = (req, res) => {
-  Blog.find()
-    .populate("user upvotes.user comments.user")
-    .sort({ createdAt: -1 })
-    .exec((err, blogs) => {
-      if (err) {
-        res.status(400).json({
-          errorMsg: "An error occured",
-        });
-      }
+exports.allblogs = async (req, res) => {
+  try {
+    const blogs = await Blog.find({}).sort({ createdAt: -1 }).exec();
 
-      blogs.map((blog) => {
-        blog.user.salt = undefined;
-        blog.user.encryptedpassword = undefined;
-      });
-      return res.json(blogs);
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All blogs retrieved successfully",
+      data: blogs,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
     });
-};
-
-//Read a particular blog
-exports.getBlog = (req, res) => {
-  Blog.find({ _id: req.blogs._id }).exec((err, blog) => {
-    if (err) {
-      res.status(400).json({
-        errorMsg: "An error occured",
-      });
-    }
-    return res.json(blog);
-  });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: "Failed to retrieve blogs",
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 // update blog
-exports.updateBlog = (req, res) => {
-  const { user, title, content, link } = req.body;
-  var picture;
-  if (req.file) {
-    picture = req.file.path;
-  }
-  const updateObj = { user, title, content, picture, link };
+exports.updateBlog = async (req, res) => {
+  try {
+    const { title, content, link, media } = req.body;
+    const userId = req.user.id;
+    const { blogId } = req.params;
+    const updateObj = { title, content, link, media };
 
-  Blog.findByIdAndUpdate(
-    { _id: req.blogs._id },
-    { $set: updateObj },
-    { useFindAndModify: false, new: true },
-    (err, blog) => {
-      if (err || !blog) {
-        return res.status(400).json({
-          error: "An error occured,  try again later",
-        });
-      }
-      return res.status(200).json(blog);
+    let blog = await Blog.findOne({ _id: blogId }).exec();
+    if (!blog._id || blog.userId.toString() !== userId.toString()) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Blog not found`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
+      });
     }
-  );
+
+    blog = await Blog.findOneAndUpdate(
+      { _id: blogId, userId },
+      { $set: updateObj },
+      { useFindAndModify: false, new: true }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Blog updated successfully..",
+      data: blog,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 //delete a blog
-exports.deleteBlog = (req, res) => {
-  Blog.findByIdAndRemove(
-    { _id: req.blogs._id },
-    { useFindAndModify: false },
-    (err, blog) => {
-      if (err || !blog) {
-        return res.status(400).json({
-          errorMsg: "An error occurred, try again later",
-        });
-      }
+exports.deleteBlog = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { blogId } = req.params;
 
-      // After successful deletion, fetch all posts and return them to the client
-      Blog.find({}, (err, blogs) => {
-        if (err) {
-          return res.status(400).json({
-            errorMsg: "An error occurred while fetching blogs",
-          });
-        }
+    let blog = await Blog.findOne({ _id: blogId }).exec();
 
-        return res.status(200).json({
-          message: "Blog has been deleted",
-          updatedBlogs: blogs, // Send the updated list of posts back to the client
-        });
+    if (!blog || blog.userId.toString() !== userId.toString()) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Blog not found or you don't have permission to delete it`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
       });
     }
-  );
+
+    blog = await Blog.findOneAndRemove(
+      { _id: blogId, userId },
+      { useFindAndModify: false }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Blog deleted successfully",
+      data: blog,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 // Upvote a blog
-exports.upvoteBlog = (req, res) => {
-  Blog.findByIdAndUpdate(
-    { _id: req.blogs._id },
-    {
-      $push: { upvotes: req.profile._id },
-    },
-    {
-      new: true,
-      useFindAndModify: false,
+exports.upvoteBlog = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { blogId } = req.params;
+
+    let blog = await Blog.findOne({ _id: blogId }).exec();
+    if (!blog) {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        status: globalConstants.status.failed,
+        message: `Blog not found `,
+        error: globalConstants.statusCode.BadRequestException.statusCodeName,
+        statusCode: globalConstants.statusCode.BadRequestException.code,
+      });
     }
-  ).exec((err, result) => {
-    if (err) {
-      return res
-        .status(400)
-        .json({ errorMsg: "An error occured, try again later" });
-    } else {
-      res.status(200).json(result);
-    }
-  });
+
+    const result = await Blog.findByIdAndUpdate(
+      blogId,
+      {
+        $push: {
+          upvotes: { userId: userId },
+        },
+      },
+      {
+        new: true,
+        useFindAndModify: false,
+      }
+    );
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `${userId} upvoted the blog!!`,
+      data: result,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 // Downvote a blog
-exports.downvoteBlog = (req, res) => {
-  Blog.findByIdAndUpdate(
-    { _id: req.blogs._id },
-    {
-      $pull: { upvotes: req.profile._id },
-    },
-    {
-      new: true,
-      useFindAndModify: false,
+exports.downvoteBlog = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { blogId } = req.params;
+
+    let blog = await Blog.findOne({ _id: blogId }).exec();
+    if (!blog) {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        status: globalConstants.status.failed,
+        message: `Blog not found `,
+        error: globalConstants.statusCode.BadRequestException.statusCodeName,
+        statusCode: globalConstants.statusCode.BadRequestException.code,
+      });
     }
-  ).exec((err, result) => {
-    if (err) {
-      return res
-        .status(400)
-        .json({ errorMsg: "An error occured, try again later" });
-    } else {
-      res.status(200).json(result);
-    }
-  });
+
+    const result = await Blog.findByIdAndUpdate(
+      blogId,
+      {
+        $pull: {
+          upvotes: { userId: userId },
+        },
+      },
+      {
+        new: true,
+        useFindAndModify: false,
+      }
+    );
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `${userId} downvoted the blog!!`,
+      data: result,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 // comment on a blog
-exports.commentBlog = (req, res) => {
-  Blog.findByIdAndUpdate(
-    { _id: req.blogs._id },
-    {
-      $push: {
-        comments: { user: req.profile._id, text: req.body.text },
+exports.commentBlog = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { text } = req.body;
+    const { blogId } = req.params;
+
+    let blog = await Blog.findOne({ _id: blogId }).exec();
+    if (!blog) {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        status: globalConstants.status.failed,
+        message: `Blog not found `,
+        error: globalConstants.statusCode.BadRequestException.statusCodeName,
+        statusCode: globalConstants.statusCode.BadRequestException.code,
+      });
+    }
+
+    const result = await Blog.findByIdAndUpdate(
+      blogId,
+      {
+        $push: {
+          comments: { userId: userId, text: text },
+        },
       },
-    },
-    {
-      new: true,
-    }
-  ).exec((err, result) => {
-    if (err) {
-      return res
-        .status(400)
-        .json({ errorMsg: "An error occured, try again later" });
-    } else {
-      res.status(200).json(result);
-    }
-  });
-};
-
-exports.countShareBlog = (req, res) => {
-  Blog.findById({ _id: req.blogs._id }).exec((err, blog) => {
-    if (err) {
-      return res
-        .status(400)
-        .json({ errorMsg: "An error occured, try again later" });
-    }
-
-    blog.shareCount++;
-    blog.save();
-    res.json(blog);
-  });
-};
-
-exports.getAllBlogByUser = (req, res) => {
-  Blog.find({ user: req.profile._id })
-    .populate("user upvotes.user comments.user")
-    .sort({ createdAt: -1 })
-    .exec((err, blogs) => {
-      if (err) {
-        return res
-          .json(400)
-          .json({ errorMsg: "An error occured, try again later" });
+      {
+        new: true,
+        useFindAndModify: false,
       }
-      res.status(200).json(blogs);
+    );
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `${userId} comment on blog!!`,
+      data: result,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
     });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
+
+exports.countShareBlog = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { blogId } = req.params;
+
+    let blog = await Blog.findOne({ _id: blogId }).exec();
+    if (!blog) {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        status: globalConstants.status.failed,
+        message: `Blog not found `,
+        error: globalConstants.statusCode.BadRequestException.statusCodeName,
+        statusCode: globalConstants.statusCode.BadRequestException.code,
+      });
+    }
+
+    const result = await Blog.findById(blogId).exec((err, blog) => {
+      blog.shareCount++;
+      blog.save();
+    });
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: `${userId} shared the blog!!`,
+      data: result,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
+
+exports.getAllBlogByUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const blogs = await Blog.find({ userId }).sort({ createdAt: -1 }).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All blogs",
+      data: blogs,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };

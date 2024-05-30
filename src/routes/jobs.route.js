@@ -4,7 +4,6 @@ const {
   getJobById,
   createJob,
   allJobs,
-  getJob,
   updateJob,
   deleteJob,
 } = require("../controllers/jobs.controller");
@@ -16,7 +15,7 @@ const router = express.Router();
 // read all jobs
 router.get("/jobs", AuthMiddleware, allJobs);
 //read a particular job
-router.get("/jobs/:jobId", AuthMiddleware, getJob);
+router.get("/jobs/:jobId", AuthMiddleware, getJobById);
 
 // admin routes
 
