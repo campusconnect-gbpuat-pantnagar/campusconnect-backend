@@ -1,4 +1,6 @@
 const Event = require("../models/Event");
+const { HttpStatusCode } = require("../enums/http-status-code.enum");
+const { globalConstants } = require("../utils/constants");
 
 exports.getEventById = async (req, res) => {
 	try {

@@ -1,4 +1,6 @@
 const Blog = require("../models/Blogs");
+const { HttpStatusCode } = require("../enums/http-status-code.enum");
+const { globalConstants } = require("../utils/constants");
 
 exports.getBlogById = async (req, res) => {
   try {
@@ -179,7 +181,7 @@ exports.upvoteBlog = async (req, res) => {
       blogId,
       {
         $push: {
-          upvotes: { userId: userId },
+          upvotes: userId,
         },
       },
       {
@@ -225,7 +227,7 @@ exports.downvoteBlog = async (req, res) => {
       blogId,
       {
         $pull: {
-          upvotes: { userId: userId },
+          upvotes: userId,
         },
       },
       {

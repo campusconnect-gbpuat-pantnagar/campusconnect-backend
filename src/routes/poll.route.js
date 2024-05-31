@@ -1,9 +1,5 @@
 const express = require("express");
 const {
-  isSignedIn,
-  isAuthenticated,
-} = require("../controllers/auth.controller");
-const {
   getPollById,
   createPoll,
   voteOnPoll,

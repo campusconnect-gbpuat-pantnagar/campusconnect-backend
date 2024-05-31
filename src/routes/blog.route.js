@@ -39,8 +39,8 @@ router.put("/blogs/:blogId/downvote", AuthMiddleware, downvoteBlog);
 // comment on a blog
 router.put("/blogs/:blogId/comment", AuthMiddleware, commentBlog);
 
-router.get("/blogs/:blogId/share", countShareBlog);
+router.get("/blogs/:blogId/share", AuthMiddleware, countShareBlog);
 
-router.get("/blogs", AuthMiddleware, getAllBlogByUser);
+router.get("/blogs/me", AuthMiddleware, getAllBlogByUser);
 
 module.exports = router;

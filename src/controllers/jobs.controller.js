@@ -1,5 +1,6 @@
 const Job = require("../models/Jobs");
-const path = require("path");
+const { HttpStatusCode } = require("../enums/http-status-code.enum");
+const { globalConstants } = require("../utils/constants");
 
 exports.getJobById = async (req, res) => {
   try {

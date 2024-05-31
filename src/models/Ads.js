@@ -24,7 +24,7 @@ const adsSchema = new mongoose.Schema(
     },
     is_safe: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     contact: {
       type: String,

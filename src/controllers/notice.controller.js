@@ -1,4 +1,6 @@
 const Notice = require("../models/Notice");
+const { HttpStatusCode } = require("../enums/http-status-code.enum");
+const { globalConstants } = require("../utils/constants");
 
 exports.getNoticeById = async (req, res) => {
 	try {

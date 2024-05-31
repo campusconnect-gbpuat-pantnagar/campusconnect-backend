@@ -26,15 +26,15 @@ app.get("/api/v1/healthcheck", (req, res) => {
 });
 
 app.use("/api/v1", require("./src/routes/post.route"));
-// app.use("/api/v1", require("./src/routes/blog.route"));
-// app.use("/api/v1", require("./src/routes/jobs.route"));
-// app.use("/api/v1", require("./src/routes/ad.route"));
-// app.use("/api/v1", require("./routes/notice.route"));
-// app.use("/api/v1", require("./routes/poll.route"));
-// app.use("/api/v1", require("./routes/event.route"));
-// app.use("/api/v1", require("./routes/update.route"));
-// app.use("/api/v1", require("./routes/feedback.route"));
-// app.use("/api/v1", require("./routes/notification.route"));
+app.use("/api/v1", require("./src/routes/blog.route"));
+app.use("/api/v1", require("./src/routes/jobs.route"));
+app.use("/api/v1", require("./src/routes/ads.route"));
+app.use("/api/v1", require("./src/routes/notice.route"));
+app.use("/api/v1", require("./src/routes/poll.route"));
+app.use("/api/v1", require("./src/routes/event.route"));
+app.use("/api/v1", require("./src/routes/site-update.route"));
+app.use("/api/v1", require("./src/routes/feedback.route"));
+app.use("/api/v1", require("./src/routes/notification.route"));
 
 // database connectivity
 mongoose.connect(
