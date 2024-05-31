@@ -18,11 +18,11 @@ const router = express.Router();
 // create blog
 router.post("/blogs", AuthMiddleware, createBlog);
 
-//get a particular blog
-router.get("/blogs/:blogId", AuthMiddleware, getBlogById);
-
 // all blogs
 router.get("/blogs", AuthMiddleware, allblogs);
+router.get("/blogs/me", AuthMiddleware, getAllBlogByUser);
+//get a particular blog
+router.get("/blogs/:blogId", AuthMiddleware, getBlogById);
 
 // update blog
 router.put("/blogs/:blogId", AuthMiddleware, updateBlog);
@@ -40,7 +40,5 @@ router.put("/blogs/:blogId/downvote", AuthMiddleware, downvoteBlog);
 router.put("/blogs/:blogId/comment", AuthMiddleware, commentBlog);
 
 router.get("/blogs/:blogId/share", AuthMiddleware, countShareBlog);
-
-router.get("/blogs/me", AuthMiddleware, getAllBlogByUser);
 
 module.exports = router;

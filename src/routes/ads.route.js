@@ -19,6 +19,7 @@ router.post("/ads", AuthMiddleware, createAds);
 // get all ads - read all
 router.get("/ads", AuthMiddleware, allAds);
 
+router.get("/ads/me", AuthMiddleware, getAllAdsByUser);
 //get a particular ad
 router.get("/ads/:adId", AuthMiddleware, getAdById);
 
@@ -36,7 +37,5 @@ router.delete("/ads/:adId", AuthMiddleware, deleteAd);
 
 // comment on an ad
 // router.put("/ads/:adId/comments", AuthMiddleware, commentAd);
-
-router.get("/ads/me", AuthMiddleware, getAllAdsByUser);
 
 module.exports = router;
