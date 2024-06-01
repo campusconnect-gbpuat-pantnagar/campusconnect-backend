@@ -22,7 +22,12 @@ const PORT = process.env.PORT || 5000;
 // middlewares
 
 app.use(morgan("dev"));
-app.use(cors("*"));
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+  })
+);
 app.use(cookieparser());
 app.use(express.json());
 // routes
