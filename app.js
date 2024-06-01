@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 5000;
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: "*",
+    origin: ["http://localhost:3000", "https://campusconnect.gbpuat.tech", "*"],
     credentials: true,
   })
 );
