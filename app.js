@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 5000;
 // middlewares
 
 app.use(morgan("dev"));
-app.use(cors());
+app.use(cors("*"));
 app.use(cookieparser());
 app.use(express.json());
 // routes
@@ -70,3 +70,20 @@ mongoose.connect(
     });
   }
 );
+
+process.on("SIGTERM", () => {
+  console.info("SIGTERM received");
+  shutdown();
+});
+
+process.on("SIGINT", () => {
+  console.info("SIGINT received");
+  shutdown();
+});
+
+function shutdown() {
+  mongoose.connection.close(() => {
+    console.info("MongoDB connection closed");
+    process.exit(0);
+  });
+}
