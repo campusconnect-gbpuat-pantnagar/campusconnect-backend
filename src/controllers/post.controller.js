@@ -1,4 +1,11 @@
 const { HttpStatusCode } = require("../enums/http-status-code.enum");
+const {
+  CONTENT_MODERATION_QUEUE,
+} = require("../libraries/queues/content-moderation.queue");
+const {
+  QueueEventJobPattern,
+} = require("../libraries/queues/jobs/job.pattern");
+const { JobPriority } = require("../libraries/queues/jobs/job.priority");
 const Post = require("../models/Post");
 const { globalConstants } = require("../utils/constants");
 
@@ -46,6 +53,17 @@ exports.createPost = async (req, res) => {
     const newPost = new Post({ userId, content, media });
     const post = await newPost.save();
 
+    // trigger the post creation event for content moderation service
+    const eventData = {
+      postId: newPost._id,
+    };
+
+    await CONTENT_MODERATION_QUEUE.add(
+      QueueEventJobPattern.POST_CREATED,
+      { ...eventData },
+      { priority: JobPriority.HIGHEST }
+    );
+    console.log(eventData, "triggering post creation event");
     return res.status(HttpStatusCode.CREATED).json({
       status: globalConstants.status.success,
       message: "Post created successfully",
