@@ -7,7 +7,7 @@ exports.AuthMiddleware = async (req, res, next) => {
     const authorization = req.headers.authorization;
 
     if (!authorization) {
-      res.status(HttpStatusCode.UNAUTHORIZED).json({
+      return res.status(HttpStatusCode.UNAUTHORIZED).json({
         status: globalConstants.status.failed,
         message: "No authorization header | not authorized",
         error: globalConstants.statusCode.UnauthorizedException.statusCodeName,
@@ -20,7 +20,7 @@ exports.AuthMiddleware = async (req, res, next) => {
     const [bearer, token] = authorization.split(" ");
 
     if (bearer != "Bearer" || !token) {
-      res.status(HttpStatusCode.UNAUTHORIZED).json({
+      return res.status(HttpStatusCode.UNAUTHORIZED).json({
         status: globalConstants.status.failed,
         message:
           'Invalid authorization header format. Format is "Bearer <token>".',
