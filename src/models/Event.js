@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { toJSON } = require("./plugins/toJSON");
 require("mongoose-type-url");
 
 const eventSchema = new mongoose.Schema(
@@ -49,5 +50,5 @@ const eventSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+eventSchema.plugin(toJSON);
 module.exports = mongoose.model("Event", eventSchema);

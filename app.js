@@ -25,7 +25,7 @@ app.use(morgan("dev"));
 app.use(
   cors({
     origin: ["http://localhost:3000", "https://campusconnect.gbpuat.tech", "*"],
-    credentials: true,
+    // credentials: true,
   })
 );
 app.use(cookieparser());

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { toJSON } = require("./plugins/toJSON");
 require("mongoose-type-url");
 
 const JobSchema = new mongoose.Schema(
@@ -59,4 +60,5 @@ const JobSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+JobSchema.plugin(toJSON);
 module.exports = mongoose.model("Job", JobSchema);

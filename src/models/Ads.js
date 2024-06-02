@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { toJSON } = require("./plugins/toJSON");
 
 const adsSchema = new mongoose.Schema(
   {
@@ -83,5 +84,5 @@ const adsSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+adsSchema.plugin(toJSON);
 module.exports = mongoose.model("Ads", adsSchema);
