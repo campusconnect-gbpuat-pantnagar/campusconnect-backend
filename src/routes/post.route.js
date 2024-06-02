@@ -9,6 +9,7 @@ const {
   likePost,
   unlikePost,
   commentPost,
+  getAllPostOfUserByUserId,
 } = require("../controllers/post.controller");
 const { AuthMiddleware } = require("../middlewares/auth.middleware");
 const router = express.Router();
@@ -21,6 +22,9 @@ router.get("/posts", AuthMiddleware, allposts);
 
 // all posts created by me
 router.get("/posts/me", AuthMiddleware, getAllPostByUser);
+
+// all posts created by userId
+router.get("/posts/users/:userId", AuthMiddleware, getAllPostOfUserByUserId);
 
 //get the posts by id
 router.get("/posts/:postId", AuthMiddleware, getPostById);

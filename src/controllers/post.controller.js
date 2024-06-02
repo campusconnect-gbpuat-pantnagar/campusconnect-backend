@@ -281,6 +281,28 @@ exports.getAllPostByUser = async (req, res) => {
   }
 };
 
+exports.getAllPostOfUserByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const posts = await Post.find({ userId }).sort({ createdAt: -1 }).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All posts",
+      data: posts,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};
+
 // comment on a post
 exports.commentPost = async (req, res) => {
   try {
