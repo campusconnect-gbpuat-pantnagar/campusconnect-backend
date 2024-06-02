@@ -8,6 +8,7 @@ const {
   commentAd,
   likeAd,
   unlikeAd,
+  getAllAdsByUserId,
   getAllAdsByUser,
 } = require("../controllers/ad.controller");
 const { AuthMiddleware, isAdmin } = require("../middlewares/auth.middleware");
@@ -20,6 +21,9 @@ router.post("/ads", AuthMiddleware, createAds);
 router.get("/ads", AuthMiddleware, allAds);
 
 router.get("/ads/me", AuthMiddleware, getAllAdsByUser);
+
+router.get("/ads/users/:userId", AuthMiddleware, getAllAdsByUserId);
+
 //get a particular ad
 router.get("/ads/:adId", AuthMiddleware, getAdById);
 

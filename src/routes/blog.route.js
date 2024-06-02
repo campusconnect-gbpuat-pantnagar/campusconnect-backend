@@ -11,6 +11,7 @@ const {
   downvoteBlog,
   countShareBlog,
   getAllBlogByUser,
+  getAllBlogByUserId,
 } = require("../controllers/blog.controller");
 const { AuthMiddleware, isAdmin } = require("../middlewares/auth.middleware");
 const router = express.Router();
@@ -21,6 +22,7 @@ router.post("/blogs", AuthMiddleware, createBlog);
 // all blogs
 router.get("/blogs", AuthMiddleware, allblogs);
 router.get("/blogs/me", AuthMiddleware, getAllBlogByUser);
+router.get("/blogs/users/:userId", AuthMiddleware, getAllBlogByUserId);
 //get a particular blog
 router.get("/blogs/:blogId", AuthMiddleware, getBlogById);
 
