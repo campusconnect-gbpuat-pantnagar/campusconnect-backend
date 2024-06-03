@@ -83,7 +83,11 @@ exports.createPost = async (req, res) => {
 
 exports.allposts = async (req, res) => {
   try {
-    const posts = await Post.find({}).sort({ createdAt: -1 }).exec();
+    const posts = await Post.find({
+      is_safe: true,
+    })
+      .sort({ createdAt: -1 })
+      .exec();
 
     return res.status(HttpStatusCode.OK).json({
       status: globalConstants.status.success,
@@ -284,7 +288,9 @@ exports.getAllPostByUser = async (req, res) => {
 exports.getAllPostOfUserByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    const posts = await Post.find({ userId }).sort({ createdAt: -1 }).exec();
+    const posts = await Post.find({ userId, is_safe: true })
+      .sort({ createdAt: -1 })
+      .exec();
 
     return res.status(HttpStatusCode.OK).json({
       status: globalConstants.status.success,
