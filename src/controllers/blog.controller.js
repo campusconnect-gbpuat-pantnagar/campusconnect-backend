@@ -180,7 +180,7 @@ exports.upvoteBlog = async (req, res) => {
     const result = await Blog.findByIdAndUpdate(
       blogId,
       {
-        $push: {
+        $addToSet: {
           upvotes: userId,
         },
       },
