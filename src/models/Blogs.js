@@ -68,7 +68,7 @@ const blogSchema = new mongoose.Schema(
     comments: [
       {
         _id: false,
-        user: {
+        userId: {
           type: mongoose.Schema.ObjectId,
           ref: "User",
           required: true,
