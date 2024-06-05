@@ -26,6 +26,7 @@ app.use(
   cors({
     origin: [
       "*",
+      "https://campusconnect-gbpuat.vercel.app",
       "http://localhost:3000",
       "https://campusconnect.gbpuat.tech",
       "*",
