@@ -7,7 +7,7 @@ const {
 const {
   QueueEventJobPattern,
 } = require("../libraries/queues/jobs/job.pattern");
-
+const { JobPriority } = require("../libraries/queues/jobs/job.priority");
 exports.getJobById = async (req, res) => {
   try {
     const { jobId } = req.params;
