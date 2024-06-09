@@ -15,6 +15,9 @@ const {
 const {
   CONTENT_MODERATION_QUEUE,
 } = require("./src/libraries/queues/content-moderation.queue");
+const {
+  UNIVERSITY_NOTIFICATION_QUEUE,
+} = require("./src/libraries/queues/university-notification.queue");
 
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT || 5000;
@@ -56,7 +59,10 @@ app.use("/api/v1", require("./src/routes/notification.route"));
 
 async function initializeQueues() {
   try {
-    await Promise.all([checkQueueReadiness(CONTENT_MODERATION_QUEUE)]);
+    await Promise.all([
+      checkQueueReadiness(CONTENT_MODERATION_QUEUE),
+      checkQueueReadiness(UNIVERSITY_NOTIFICATION_QUEUE),
+    ]);
   } catch (e) {
     console.error(`Error initializing queues`, e);
     process.exit(1);
