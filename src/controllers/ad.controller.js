@@ -182,3 +182,25 @@ exports.getAllAdsByUser = async (req, res) => {
     });
   }
 };
+
+exports.getAllAdsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const ads = await Ads.find({ userId }).sort({ createdAt: -1 }).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "All ads",
+      data: ads,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
+};

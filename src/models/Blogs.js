@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { toJSON } = require("./plugins/toJSON");
 
 const blogSchema = new mongoose.Schema(
   {
@@ -66,9 +67,11 @@ const blogSchema = new mongoose.Schema(
     ],
     comments: [
       {
-        user: {
+        _id: false,
+        userId: {
           type: mongoose.Schema.ObjectId,
           ref: "User",
+          required: true,
         },
         text: {
           type: String,
@@ -84,4 +87,5 @@ const blogSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+blogSchema.plugin(toJSON);
 module.exports = mongoose.model("Blog", blogSchema);

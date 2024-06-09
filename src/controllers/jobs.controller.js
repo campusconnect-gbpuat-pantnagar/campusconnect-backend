@@ -1,7 +1,13 @@
 const Job = require("../models/Jobs");
 const { HttpStatusCode } = require("../enums/http-status-code.enum");
 const { globalConstants } = require("../utils/constants");
-
+const {
+  UNIVERSITY_NOTIFICATION_QUEUE,
+} = require("../libraries/queues/university-notification.queue");
+const {
+  QueueEventJobPattern,
+} = require("../libraries/queues/jobs/job.pattern");
+const { JobPriority } = require("../libraries/queues/jobs/job.priority");
 exports.getJobById = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -36,10 +42,42 @@ exports.getJobById = async (req, res) => {
 // Create job
 exports.createJob = async (req, res) => {
   try {
-    const { workTitle, company, batchYear, collegeId, eligibility, skillsReq, workLocation, salary, applyBy, link } = req.body;
+    const {
+      workTitle,
+      company,
+      batchYear,
+      collegeId,
+      eligibility,
+      skillsReq,
+      workLocation,
+      salary,
+      applyBy,
+      link,
+    } = req.body;
 
-    const newJob = new Job({ workTitle, company, batchYear, collegeId, eligibility, skillsReq, workLocation, salary, applyBy, link });
+    const newJob = new Job({
+      workTitle,
+      company,
+      batchYear,
+      collegeId,
+      eligibility,
+      skillsReq,
+      workLocation,
+      salary,
+      applyBy,
+      link,
+    });
     const job = await newJob.save();
+    const eventData = {
+      jobId: newJob._id,
+    };
+
+    await UNIVERSITY_NOTIFICATION_QUEUE.add(
+      QueueEventJobPattern.JOB_CREATED,
+      { ...eventData },
+      { priority: JobPriority.HIGHEST }
+    );
+    console.log(eventData, "triggering job creation event");
 
     return res.status(HttpStatusCode.CREATED).json({
       status: globalConstants.status.success,
@@ -83,75 +121,97 @@ exports.allJobs = async (req, res) => {
 // update job
 exports.updateJob = async (req, res) => {
   try {
-		const { workTitle, company, batchYear, collegeId, eligibility, skillsReq, workLocation, salary, applyBy, link } = req.body;
-		const { jobId } = req.params;
-		const updateObj = { workTitle, company, batchYear, collegeId, eligibility, skillsReq, workLocation, salary, applyBy, link };
-	
-		let job = await Job.findOne({ _id: jobId }).exec();
-		if (!job._id) {
-		  return res.status(HttpStatusCode.FORBIDDEN).json({
-			status: globalConstants.status.failed,
-			message: `Job not found`,
-			error: globalConstants.statusCode.ForbiddenException.statusCodeName,
-			statusCode: globalConstants.statusCode.ForbiddenException.code,
-		  });
-		}
-	
-		job = await Job.findOneAndUpdate(
-		  { _id: jobId },
-		  { $set: updateObj },
-		  { useFindAndModify: false, new: true }
-		).exec();
-	
-		return res.status(HttpStatusCode.OK).json({
-		  status: globalConstants.status.success,
-		  message: "Job updated successfully..",
-		  data: job,
-		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
-		});
-	} catch (err) {
-		return res.status(HttpStatusCode.BAD_REQUEST).json({
-		  status: globalConstants.status.failed,
-		  message: `${err.message}`,
-		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
-		  statusCode: globalConstants.statusCode.BadRequestException.code,
-		});
-	}
+    const {
+      workTitle,
+      company,
+      batchYear,
+      collegeId,
+      eligibility,
+      skillsReq,
+      workLocation,
+      salary,
+      applyBy,
+      link,
+    } = req.body;
+    const { jobId } = req.params;
+    const updateObj = {
+      workTitle,
+      company,
+      batchYear,
+      collegeId,
+      eligibility,
+      skillsReq,
+      workLocation,
+      salary,
+      applyBy,
+      link,
+    };
+
+    let job = await Job.findOne({ _id: jobId }).exec();
+    if (!job._id) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Job not found`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
+      });
+    }
+
+    job = await Job.findOneAndUpdate(
+      { _id: jobId },
+      { $set: updateObj },
+      { useFindAndModify: false, new: true }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Job updated successfully..",
+      data: job,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };
 
 // delete job
 exports.deleteJob = async (req, res) => {
   try {
-		const { jobId } = req.params;
-		let job = await Job.findOne({ _id: jobId }).exec();
-	
-		if (!job) {
-		  return res.status(HttpStatusCode.FORBIDDEN).json({
-			status: globalConstants.status.failed,
-			message: `Job not found or you don't have permission to delete it`,
-			error: globalConstants.statusCode.ForbiddenException.statusCodeName,
-			statusCode: globalConstants.statusCode.ForbiddenException.code,
-		  });
-		}
-	
-		job = await Job.findOneAndRemove(
-		  { _id: jobId },
-		  { useFindAndModify: false }
-		).exec();
-	
-		return res.status(HttpStatusCode.OK).json({
-		  status: globalConstants.status.success,
-		  message: "Job deleted successfully",
-		  data: job,
-		  statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
-		});
-	} catch (err) {
-		console.error(err);
-		return res.status(HttpStatusCode.BAD_REQUEST).json({
-		  status: globalConstants.status.failed,
-		  message: `${err.message}`,
-		  error: globalConstants.statusCode.BadRequestException.statusCodeName,
-		  statusCode: globalConstants.statusCode.BadRequestException.code,
-		});
-	}
+    const { jobId } = req.params;
+    let job = await Job.findOne({ _id: jobId }).exec();
+
+    if (!job) {
+      return res.status(HttpStatusCode.FORBIDDEN).json({
+        status: globalConstants.status.failed,
+        message: `Job not found or you don't have permission to delete it`,
+        error: globalConstants.statusCode.ForbiddenException.statusCodeName,
+        statusCode: globalConstants.statusCode.ForbiddenException.code,
+      });
+    }
+
+    job = await Job.findOneAndRemove(
+      { _id: jobId },
+      { useFindAndModify: false }
+    ).exec();
+
+    return res.status(HttpStatusCode.OK).json({
+      status: globalConstants.status.success,
+      message: "Job deleted successfully",
+      data: job,
+      statusCode: globalConstants.statusCode.HttpsStatusCodeOk.code,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: globalConstants.status.failed,
+      message: `${err.message}`,
+      error: globalConstants.statusCode.BadRequestException.statusCodeName,
+      statusCode: globalConstants.statusCode.BadRequestException.code,
+    });
+  }
 };

@@ -1,9 +1,10 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const { toJSON } = require("./plugins/toJSON");
 
 const pollSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.ObjectId,
-    ref: "User",  // this need to be deleted if it creates a problem
+    ref: "User", // this need to be deleted if it creates a problem
     required: true,
   },
   title: {
@@ -17,20 +18,20 @@ const pollSchema = new mongoose.Schema({
         {
           type: mongoose.Schema.ObjectId,
           ref: "User",
-        }
+        },
       ],
-    }
+    },
   ],
   created: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   totalVotes: [
     {
       type: mongoose.Schema.ObjectId,
       ref: "User",
-    }
-  ]
+    },
+  ],
 });
-
+pollSchema.plugin(toJSON);
 module.exports = mongoose.model("Poll", pollSchema);

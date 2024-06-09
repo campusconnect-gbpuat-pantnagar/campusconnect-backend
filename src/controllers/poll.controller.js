@@ -1,4 +1,4 @@
-const Poll = require("../models/Poll")
+const Poll = require("../models/Poll");
 const { HttpStatusCode } = require("../enums/http-status-code.enum");
 const { globalConstants } = require("../utils/constants");
 
@@ -33,7 +33,6 @@ exports.getPollById = async (req, res) => {
   }
 };
 
-
 exports.createPoll = async (req, res) => {
   try {
     const { title, options } = req.body;
@@ -60,7 +59,6 @@ exports.createPoll = async (req, res) => {
   }
 };
 
-
 exports.voteOnPoll = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -78,13 +76,13 @@ exports.voteOnPoll = async (req, res) => {
     }
 
     poll = await Poll.findOneAndUpdate(
-      { "_id": pollId, "options._id": optionId },
-      { 
-        $addToSet: { 
-          "options.$.votes": userId, 
-          "totalVotes": userId 
-        }
-      },  
+      { _id: pollId, "options._id": optionId },
+      {
+        $addToSet: {
+          "options.$.votes": userId,
+          totalVotes: userId,
+        },
+      },
       { new: true }
     ).exec();
 
@@ -104,7 +102,6 @@ exports.voteOnPoll = async (req, res) => {
     });
   }
 };
-
 
 exports.allPolls = async (req, res) => {
   try {
@@ -164,4 +161,3 @@ exports.deletePoll = async (req, res) => {
     });
   }
 };
-

@@ -10,6 +10,7 @@ const { AuthMiddleware } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
+router.get("/polls", AuthMiddleware, allPolls);
 // This route is used for creating the polls
 router.post("/polls", AuthMiddleware, createPoll);
 
@@ -17,7 +18,6 @@ router.post("/polls", AuthMiddleware, createPoll);
 router.put("/polls/:pollId/:optionId/vote", AuthMiddleware, voteOnPoll);
 
 // get all polls
-router.get("/polls", AuthMiddleware, allPolls);
 
 // get poll by pollId
 router.get("/polls/:pollId", AuthMiddleware, getPollById);
